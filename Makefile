@@ -77,7 +77,7 @@ clean-assets:
 $(VENV_PYTHON):
 	$(PYTHON) -m venv .venv
 	$(VENV_PYTHON) -m pip install -U pip
-	$(VENV_PYTHON) -m pip install pygame PyOpenGL
+	$(VENV_PYTHON) -m pip install pygame PyOpenGL numpy
 
 run: $(VENV_PYTHON) assets
 	$(VENV_PYTHON) main.py

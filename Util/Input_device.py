@@ -19,6 +19,21 @@ keyboard_mapping = (
     (116,),
 )
 
+# SDL HIDAPI order for a DualShock 4 opened as "PS4 Controller":
+# stick axes 0-1, d-pad buttons 11-14, Cross 0, Circle 1, Square 2,
+# Triangle 3, L1 9, R1 10, R2 axis 5. Attacks follow the Street Fighter pad.
+ps4_controller_mapping = (
+    (("analog", 0), ("binary", 14), ("binary", 13, 1)),
+    (("analog", 1), ("binary", 11, 1), ("binary", 12)),
+    (("analog", 5),),
+    (("binary", 1),),
+    (("binary", 0),),
+    (("binary", 10),),
+    (("binary", 3),),
+    (("binary", 2),),
+    (("binary", 9),),
+)
+
 joystick_name_mapping = {
     "Nintendo Switch Pro Controller": (
         (("analog", 0), ("binary", 14), ("binary", 13, 1)),
@@ -45,6 +60,18 @@ joystick_name_mapping = {
         (("analog", 2),),
         (("analog", 3),),
     ),
+    "Sony Interactive Entertainment Wireless Controller": (
+        (("a", 0),),
+        (("a", 1),),
+        (("b", 4),),
+        (("b", 3),),
+        (("b", 2),),
+        (("b", 5),),
+        (("b", 1),),
+        (("a", 2),),
+        (("a", 3),),
+    ),
+    "PS4 Controller": ps4_controller_mapping,
 }
 
 
@@ -66,7 +93,12 @@ class InputDevice:
         )
         if mode == "joystick":
             self.controller = joystick.Joystick(index)
-            self.con = joystick_name_mapping[self.controller.get_name()]
+            name = self.controller.get_name()
+            try:
+                self.con = joystick_name_mapping[name]
+            except KeyError:
+                print(f"No button map for joystick {name!r}; using the PlayStation layout.")
+                self.con = ps4_controller_mapping
         self.press_list_showed = []
         (
             self.current_input,
