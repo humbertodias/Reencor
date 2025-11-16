@@ -2,6 +2,8 @@
  
 A retro-inspired 2D fighting game featuring classic-style sprites, Pygame, and OpenGL.
 
+**Note**: A C++ port using SDL2 is now available! See [README_CPP.md](README_CPP.md) for details on building and running the C++ version.
+
 ## Demo Video
 
 Check out the gameplay demo on Reddit:  
