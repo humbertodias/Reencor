@@ -29,13 +29,26 @@ brew install cmake sdl2 sdl2_mixer sdl2_image glew
 
 ### Build Instructions
 
+#### Using the build script (recommended):
+```bash
+chmod +x build.sh
+./build.sh
+```
+
+#### Manual build:
 ```bash
 mkdir build
 cd build
 cmake ..
-make
-./Reencor
+make -j$(nproc)
 ```
+
+#### Run the game:
+```bash
+./build/Reencor
+```
+
+**Note**: Make sure the `Assets` folder with game sprites and data is present in the repository root.
 
 ## Architecture
 
@@ -69,6 +82,22 @@ The C++ port maintains a similar architecture to the original Python version:
 
 This is an initial port providing the core framework. Many game-specific features from the original Python version are still being implemented. The game loop, rendering, and input systems are functional and provide a foundation for completing the port.
 
+## Comparison with Python Version
+
+See [PYTHON_VS_CPP.md](PYTHON_VS_CPP.md) for a detailed comparison between the Python/Pygame and C++/SDL2 versions.
+
 ## Controls
 
 Same as the original Python version - see main README.md for control details.
+
+## Contributing
+
+To add features or complete the port:
+1. Review the Python implementation in the corresponding module
+2. Port the logic to the C++ equivalent
+3. Test thoroughly
+4. Submit a pull request
+
+## License
+
+Same as the original Reencor project.
