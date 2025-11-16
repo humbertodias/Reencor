@@ -17,10 +17,7 @@ set(SOURCES
     src/Game.cpp
     src/OpenGLRenderer.cpp
     src/InputDevice.cpp
-    src/Camera.cpp
-    src/Screen.cpp
     src/BaseActiveObject.cpp
-    src/GameObject.cpp
     src/GameScreens.cpp
     src/CollisionDetection.cpp
     src/CommonFunctions.cpp
@@ -32,10 +29,7 @@ set(HEADERS
     src/Game.h
     src/OpenGLRenderer.h
     src/InputDevice.h
-    src/Camera.h
-    src/Screen.h
     src/BaseActiveObject.h
-    src/GameObject.h
     src/GameScreens.h
     src/CollisionDetection.h
     src/CommonFunctions.h

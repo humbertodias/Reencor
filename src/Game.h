@@ -15,12 +15,7 @@ class Screen;
 class InputDevice;
 class BaseActiveObject;
 class GameScreen;
-
-struct TextureData {
-    GLuint id;
-    int width;
-    int height;
-};
+struct TextureData;
 
 class Game {
 public:
