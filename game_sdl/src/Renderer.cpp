@@ -95,14 +95,17 @@ GLuint Renderer::loadImagePath(const std::string& path) {
     return texture;
 }
 
-void Renderer::drawSprite(GLuint texture, float x, float y, float w, float h) {
+void Renderer::drawSprite(GLuint texture, float x, float y, float w, float h, bool flipX) {
     glBindTexture(GL_TEXTURE_2D, texture);
     
+    float u0 = flipX ? 1.0f : 0.0f;
+    float u1 = flipX ? 0.0f : 1.0f;
+    
     glBegin(GL_QUADS);
-        glTexCoord2f(0.0f, 0.0f); glVertex2f(x, y);
-        glTexCoord2f(1.0f, 0.0f); glVertex2f(x + w, y);
-        glTexCoord2f(1.0f, 1.0f); glVertex2f(x + w, y + h);
-        glTexCoord2f(0.0f, 1.0f); glVertex2f(x, y + h);
+        glTexCoord2f(u0, 0.0f); glVertex2f(x - w/2, y - h);
+        glTexCoord2f(u1, 0.0f); glVertex2f(x + w/2, y - h);
+        glTexCoord2f(u1, 1.0f); glVertex2f(x + w/2, y);
+        glTexCoord2f(u0, 1.0f); glVertex2f(x - w/2, y);
     glEnd();
 }
 

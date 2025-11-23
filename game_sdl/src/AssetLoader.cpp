@@ -112,15 +112,28 @@ Mix_Chunk* AssetLoader::loadSound(const std::string& path) {
     return sound;
 }
 
+#include <nlohmann/json.hpp>
+#include <fstream>
+#include <iostream>
+
+using json = nlohmann::json;
+
 void* AssetLoader::loadJSON(const std::string& path) {
-    // TODO: Implement JSON parsing
-    // For now, return nullptr as we need a proper JSON library
     std::ifstream file(path);
     if (!file.is_open()) {
         std::cerr << "Failed to open JSON file: " << path << std::endl;
         return nullptr;
     }
-    return nullptr;
+    
+    try {
+        json* jsonData = new json();
+        file >> *jsonData;
+        std::cout << "Successfully loaded JSON from " << path << std::endl;
+        return jsonData;
+    } catch (const std::exception& e) {
+        std::cerr << "Failed to parse JSON file " << path << ": " << e.what() << std::endl;
+        return nullptr;
+    }
 }
 
 std::string AssetLoader::getParentKey(const std::string& filepath, const std::string& basePath) {
