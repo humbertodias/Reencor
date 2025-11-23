@@ -1,4 +1,5 @@
 #include "AssetLoader.h"
+#include "Renderer.h"
 
 #include <algorithm>
 #include <SDL2/SDL_image.h>
@@ -7,31 +8,6 @@
 #include <fstream>
 
 namespace fs = std::filesystem;
-
-// Forward declare the error checking function
-static void checkGLError(const std::string& location) {
-    GLenum err;
-    while ((err = glGetError()) != GL_NO_ERROR) {
-        std::cerr << "OpenGL Error at " << location << ": ";
-        switch (err) {
-            case GL_INVALID_ENUM:
-                std::cerr << "GL_INVALID_ENUM";
-                break;
-            case GL_INVALID_VALUE:
-                std::cerr << "GL_INVALID_VALUE";
-                break;
-            case GL_INVALID_OPERATION:
-                std::cerr << "GL_INVALID_OPERATION";
-                break;
-            case GL_OUT_OF_MEMORY:
-                std::cerr << "GL_OUT_OF_MEMORY";
-                break;
-            default:
-                std::cerr << "Unknown error code: " << err;
-        }
-        std::cerr << std::endl;
-    }
-}
 
 void AssetLoader::loadAssets(const std::string& assetsPath,
                              std::unordered_map<std::string, GLuint>& imageDict,
@@ -105,21 +81,21 @@ GLuint AssetLoader::loadImage(const std::string& path) {
 
     GLuint texture;
     glGenTextures(1, &texture);
-    checkGLError("glGenTextures");
+    Renderer::checkGLError("glGenTextures");
     
     glBindTexture(GL_TEXTURE_2D, texture);
-    checkGLError("glBindTexture");
+    Renderer::checkGLError("glBindTexture");
     
     // Always use RGBA since we converted to RGBA32
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, formattedSurface->w, formattedSurface->h, 0,
                  GL_RGBA, GL_UNSIGNED_BYTE, formattedSurface->pixels);
-    checkGLError("glTexImage2D");
+    Renderer::checkGLError("glTexImage2D");
     
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    checkGLError("glTexParameteri");
+    Renderer::checkGLError("glTexParameteri");
 
     SDL_FreeSurface(formattedSurface);
     
