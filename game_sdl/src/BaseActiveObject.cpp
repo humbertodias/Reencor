@@ -246,6 +246,10 @@ void BaseActiveObject::loadBoxesFromJSON() {
     
     auto& boxesData = (*jsonData)["boxes"];
     
+    // Scale factor to convert from sprite space to screen space
+    // Boxes in JSON are designed for sprites at 4x current screen resolution
+    const float COLLISION_BOX_SCALE = 0.25f;
+    
     // Load hurtbox
     if (boxesData.contains("hurtbox") && boxesData["hurtbox"].contains("boxes")) {
         for (const auto& boxArray : boxesData["hurtbox"]["boxes"]) {
@@ -253,11 +257,10 @@ void BaseActiveObject::loadBoxesFromJSON() {
                 // Box coordinates from JSON are in sprite space (Y increases downward from top)
                 // We need to convert to our coordinate system (Y increases upward from ground at 0)
                 // Also scale down the boxes (they're designed for larger sprites)
-                float scale = 0.25f; // Scale factor to match our screen resolution
-                float x = boxArray[0].get<float>() * scale;
-                float y = -boxArray[1].get<float>() * scale; // Invert Y (JSON Y=0 is top, our Y=0 is ground)
-                float w = boxArray[2].get<float>() * scale;
-                float h = boxArray[3].get<float>() * scale;
+                float x = boxArray[0].get<float>() * COLLISION_BOX_SCALE;
+                float y = -boxArray[1].get<float>() * COLLISION_BOX_SCALE; // Invert Y (JSON Y=0 is top, our Y=0 is ground)
+                float w = boxArray[2].get<float>() * COLLISION_BOX_SCALE;
+                float h = boxArray[3].get<float>() * COLLISION_BOX_SCALE;
                 defaultBoxes.hurtbox.emplace_back(x, y, w, h);
             }
         }
@@ -268,11 +271,10 @@ void BaseActiveObject::loadBoxesFromJSON() {
     if (boxesData.contains("hitbox") && boxesData["hitbox"].contains("boxes")) {
         for (const auto& boxArray : boxesData["hitbox"]["boxes"]) {
             if (boxArray.is_array() && boxArray.size() >= 4) {
-                float scale = 0.25f;
-                float x = boxArray[0].get<float>() * scale;
-                float y = -boxArray[1].get<float>() * scale;
-                float w = boxArray[2].get<float>() * scale;
-                float h = boxArray[3].get<float>() * scale;
+                float x = boxArray[0].get<float>() * COLLISION_BOX_SCALE;
+                float y = -boxArray[1].get<float>() * COLLISION_BOX_SCALE;
+                float w = boxArray[2].get<float>() * COLLISION_BOX_SCALE;
+                float h = boxArray[3].get<float>() * COLLISION_BOX_SCALE;
                 defaultBoxes.hitbox.emplace_back(x, y, w, h);
             }
         }
@@ -283,11 +285,10 @@ void BaseActiveObject::loadBoxesFromJSON() {
     if (boxesData.contains("grabbox") && boxesData["grabbox"].contains("boxes")) {
         for (const auto& boxArray : boxesData["grabbox"]["boxes"]) {
             if (boxArray.is_array() && boxArray.size() >= 4) {
-                float scale = 0.25f;
-                float x = boxArray[0].get<float>() * scale;
-                float y = -boxArray[1].get<float>() * scale;
-                float w = boxArray[2].get<float>() * scale;
-                float h = boxArray[3].get<float>() * scale;
+                float x = boxArray[0].get<float>() * COLLISION_BOX_SCALE;
+                float y = -boxArray[1].get<float>() * COLLISION_BOX_SCALE;
+                float w = boxArray[2].get<float>() * COLLISION_BOX_SCALE;
+                float h = boxArray[3].get<float>() * COLLISION_BOX_SCALE;
                 defaultBoxes.pushbox.emplace_back(x, y, w, h);
             }
         }
