@@ -43,6 +43,7 @@ public:
 private:
     void loadObjects();
     std::unique_ptr<ComboTrial> comboTrial;
+    int completionTimer;  // Timer for waiting between trial completions
 };
 
 #endif // GAMESCREEN_H

@@ -30,7 +30,8 @@ void ModeSelectionScreen::deinit() {
 }
 
 // ComboTrialScreen
-ComboTrialScreen::ComboTrialScreen(Game* game) : GameScreen(game) {
+ComboTrialScreen::ComboTrialScreen(Game* game) 
+    : GameScreen(game), completionTimer(0) {
     loadObjects();
     
     // Initialize HUD after players are loaded
@@ -99,7 +100,6 @@ void ComboTrialScreen::loop() {
         // Check for trial completion and load next
         if (comboTrial->isCompleted()) {
             // Wait a bit before loading next trial
-            static int completionTimer = 0;
             completionTimer++;
             if (completionTimer > 120) {  // 2 seconds at 60fps
                 if (!comboTrial->loadNextTrial()) {
@@ -107,6 +107,8 @@ void ComboTrialScreen::loop() {
                 }
                 completionTimer = 0;
             }
+        } else {
+            completionTimer = 0;  // Reset timer if trial not completed
         }
     }
     

@@ -122,13 +122,17 @@ bool ComboTrial::checkMoveCompletion() {
     auto& player = game->activePlayers[0];
     const auto& currentMove = currentTrial.sequence[currentMoveIndex];
     
-    // TODO: Implement proper move checking
-    // For now, just check if player's current state matches the move name
-    // In a full implementation, we'd check the combo list and input history
+    // TODO: Implement proper move checking with input sequence validation
+    // Current implementation is a simplified stub that only checks state name
+    // Full implementation should:
+    // 1. Track input history and validate input sequences match trial requirements
+    // 2. Check combo_list array for hit confirmation when requiresHit is true
+    // 3. Validate move timing and cancels
+    // 4. Handle special cases like counters, parries, etc.
     
     if (currentMove.requiresHit) {
         // Check if the move hit the opponent (simplified check)
-        // In full implementation, check combo_list
+        // In full implementation, check combo_list for proper hit confirmation
         return player->currentState == currentMove.move;
     } else {
         // Just check if the state was entered
