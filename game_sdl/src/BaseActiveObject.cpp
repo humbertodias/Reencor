@@ -98,8 +98,9 @@ void BaseActiveObject::update(const std::vector<float>& cameraFocusPoint) {
         // Determine which state we should be in based on input
         std::string targetState = "Stand";
         bool isMoving = false;
-        bool isCrouching = (axis[1] > 0);  // axis[1] > 0 is down
-        bool isJumping = (axis[1] < 0);     // axis[1] < 0 is up
+        // Input axis mapping: axis[1] > 0 = DOWN, axis[1] < 0 = UP
+        bool isCrouching = (axis[1] > 0);  // DOWN
+        bool isJumping = (axis[1] < 0);     // UP
         
         // Priority: Attacks > Jump > Movement > Crouch > Stand
         
