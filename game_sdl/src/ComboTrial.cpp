@@ -228,11 +228,14 @@ void ComboTrial::reset() {
     // Reset player positions if trial specifies start positions
     if (currentTrial.startPos.size() >= 2 && game->activePlayers.size() >= 2) {
         if (currentTrial.startPos[0].size() >= 2) {
-            game->activePlayers[0]->pos[0] = currentTrial.startPos[0][0];
+            // Scale positions to fit 640px screen (trial positions designed for larger stage)
+            // Original positions like [-500, 500] are too far apart for our screen
+            // Scale by 0.5 to make them fit: [-250, 250]
+            game->activePlayers[0]->pos[0] = currentTrial.startPos[0][0] * 0.5f;
             // Y position handled by rendering offset
         }
         if (currentTrial.startPos[1].size() >= 2) {
-            game->activePlayers[1]->pos[0] = currentTrial.startPos[1][0];
+            game->activePlayers[1]->pos[0] = currentTrial.startPos[1][0] * 0.5f;
         }
     }
 }
