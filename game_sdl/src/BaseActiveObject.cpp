@@ -254,13 +254,21 @@ void BaseActiveObject::loadBoxesFromJSON() {
     if (boxesData.contains("hurtbox") && boxesData["hurtbox"].contains("boxes")) {
         for (const auto& boxArray : boxesData["hurtbox"]["boxes"]) {
             if (boxArray.is_array() && boxArray.size() >= 4) {
-                // Box coordinates from JSON are in sprite space (Y increases downward from top)
-                // We need to convert to our coordinate system (Y increases upward from ground at 0)
-                // Also scale down the boxes (they're designed for larger sprites)
+                // Box coordinates from JSON: [x, y, width, height]
+                // JSON Y is measured from top of sprite downward
+                // We need Y relative to character ground position (Y=0)
+                // Scale down boxes (designed for 4x larger sprites)
                 float x = boxArray[0].get<float>() * COLLISION_BOX_SCALE;
-                float y = -boxArray[1].get<float>() * COLLISION_BOX_SCALE; // Invert Y (JSON Y=0 is top, our Y=0 is ground)
+                float jsonY = boxArray[1].get<float>() * COLLISION_BOX_SCALE;
                 float w = boxArray[2].get<float>() * COLLISION_BOX_SCALE;
                 float h = boxArray[3].get<float>() * COLLISION_BOX_SCALE;
+                
+                // Convert Y from sprite-top-relative to ground-relative
+                // Assuming sprite height is ~400 pixels (100 after scaling)
+                // Y=0 in JSON is top of sprite, which is ~100 units above ground
+                // So: game_y = 100 - jsonY - h (to get bottom of box from ground)
+                float y = 100.0f - jsonY - h;
+                
                 defaultBoxes.hurtbox.emplace_back(x, y, w, h);
             }
         }
@@ -272,9 +280,10 @@ void BaseActiveObject::loadBoxesFromJSON() {
         for (const auto& boxArray : boxesData["hitbox"]["boxes"]) {
             if (boxArray.is_array() && boxArray.size() >= 4) {
                 float x = boxArray[0].get<float>() * COLLISION_BOX_SCALE;
-                float y = -boxArray[1].get<float>() * COLLISION_BOX_SCALE;
+                float jsonY = boxArray[1].get<float>() * COLLISION_BOX_SCALE;
                 float w = boxArray[2].get<float>() * COLLISION_BOX_SCALE;
                 float h = boxArray[3].get<float>() * COLLISION_BOX_SCALE;
+                float y = 100.0f - jsonY - h;
                 defaultBoxes.hitbox.emplace_back(x, y, w, h);
             }
         }
@@ -286,9 +295,10 @@ void BaseActiveObject::loadBoxesFromJSON() {
         for (const auto& boxArray : boxesData["grabbox"]["boxes"]) {
             if (boxArray.is_array() && boxArray.size() >= 4) {
                 float x = boxArray[0].get<float>() * COLLISION_BOX_SCALE;
-                float y = -boxArray[1].get<float>() * COLLISION_BOX_SCALE;
+                float jsonY = boxArray[1].get<float>() * COLLISION_BOX_SCALE;
                 float w = boxArray[2].get<float>() * COLLISION_BOX_SCALE;
                 float h = boxArray[3].get<float>() * COLLISION_BOX_SCALE;
+                float y = 100.0f - jsonY - h;
                 defaultBoxes.pushbox.emplace_back(x, y, w, h);
             }
         }
