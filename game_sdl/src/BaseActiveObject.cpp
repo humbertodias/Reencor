@@ -34,36 +34,43 @@ BaseActiveObject::BaseActiveObject(Game* game,
     if (dict.find("json") != dict.end() && dict.at("json") != nullptr) {
         json* jsonData = static_cast<json*>(dict.at("json"));
         
-        // Parse all states from JSON
-        int stateCount = 0;
-        for (auto& [stateName, stateJson] : jsonData->items()) {
-            if (stateJson.is_object() && stateJson.contains("framedata") && stateJson["framedata"].is_array()) {
-                StateData state;
-                
-                for (auto& frameJson : stateJson["framedata"]) {
-                    FrameData fd;
-                    fd.dur = frameJson.value("dur", 1);
-                    fd.image = frameJson.value("image", "");
+        // Check if JSON has a "states" object
+        if (jsonData->contains("states") && (*jsonData)["states"].is_object()) {
+            auto& statesJson = (*jsonData)["states"];
+            
+            // Parse all states from JSON
+            int stateCount = 0;
+            for (auto& [stateName, stateJson] : statesJson.items()) {
+                if (stateJson.is_object() && stateJson.contains("framedata") && stateJson["framedata"].is_array()) {
+                    StateData state;
                     
-                    // Parse offset if available
-                    if (frameJson.contains("pos_offset") && frameJson["pos_offset"].is_array()) {
-                        auto offsetArray = frameJson["pos_offset"];
-                        if (offsetArray.size() >= 2) {
-                            fd.pos_offset = {offsetArray[0], offsetArray[1]};
+                    for (auto& frameJson : stateJson["framedata"]) {
+                        FrameData fd;
+                        fd.dur = frameJson.value("dur", 1);
+                        fd.image = frameJson.value("image", "");
+                        
+                        // Parse offset if available
+                        if (frameJson.contains("pos_offset") && frameJson["pos_offset"].is_array()) {
+                            auto offsetArray = frameJson["pos_offset"];
+                            if (offsetArray.size() >= 2) {
+                                fd.pos_offset = {offsetArray[0], offsetArray[1]};
+                            }
                         }
+                        
+                        state.framedata.push_back(fd);
                     }
                     
-                    state.framedata.push_back(fd);
+                    states[stateName] = state;
+                    stateCount++;
                 }
-                
-                states[stateName] = state;
-                stateCount++;
             }
-        }
-        
-        std::cout << "Loaded " << stateCount << " states from JSON" << std::endl;
-        if (states.find("Stand") != states.end()) {
-            std::cout << "  - Stand state has " << states["Stand"].framedata.size() << " frames" << std::endl;
+            
+            std::cout << "Loaded " << stateCount << " states from JSON" << std::endl;
+            if (states.find("Stand") != states.end()) {
+                std::cout << "  - Stand state has " << states["Stand"].framedata.size() << " frames" << std::endl;
+            }
+        } else {
+            std::cout << "Warning: JSON does not contain 'states' object" << std::endl;
         }
     }
 }
@@ -95,7 +102,10 @@ void BaseActiveObject::update(const std::vector<float>& cameraFocusPoint) {
         // Check for forward/backward movement
         if (axis[0] < 0) {
             isMoving = true;
-            if (states.find("Walk Back") != states.end()) {
+            // Try various walk state names that might be in the JSON
+            if (states.find("Walk Backward") != states.end()) {
+                targetState = "Walk Backward";
+            } else if (states.find("Walk Back") != states.end()) {
                 targetState = "Walk Back";
             } else if (states.find("Walk") != states.end()) {
                 targetState = "Walk";
@@ -104,7 +114,10 @@ void BaseActiveObject::update(const std::vector<float>& cameraFocusPoint) {
             this->pos[0] -= MOVEMENT_SPEED * face;
         } else if (axis[0] > 0) {
             isMoving = true;
-            if (states.find("Walk Front") != states.end()) {
+            // Try various walk state names that might be in the JSON
+            if (states.find("Walk Forward") != states.end()) {
+                targetState = "Walk Forward";
+            } else if (states.find("Walk Front") != states.end()) {
                 targetState = "Walk Front";
             } else if (states.find("Walk") != states.end()) {
                 targetState = "Walk";
