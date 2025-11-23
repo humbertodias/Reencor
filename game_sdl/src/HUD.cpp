@@ -59,9 +59,9 @@ void HUD::GaugeBar::draw(float screenCenterX, float screenCenterY) {
     // Team 2: xOffset = -1.0 (flips negative coords positive, places bar on right)
     float xOffset = playerTeam == 1 ? 1.0f : -1.0f;
     float startX = screenCenterX + config.startPos[0] * xOffset;
-    float startY = screenCenterY + config.startPos[1];
+    float startY = config.startPos[1];  // Use Y directly, not relative to center
     float endX = screenCenterX + config.endPos[0] * xOffset;
-    float endY = screenCenterY + config.endPos[1];
+    float endY = config.endPos[1];  // Use Y directly, not relative to center
     
     // Calculate current bar end position based on gauge value
     float fillRatio = gaugeValue / maxValue;
@@ -102,9 +102,10 @@ HUD::HUD(Game* game) : game(game) {}
 
 HUD::GaugeConfig HUD::createHealthBarConfig() {
     GaugeConfig config;
-    // Health bar configuration matching LifeBar.json
-    config.startPos = {-70.0f, 370.0f};
-    config.endPos = {-550.0f, 370.0f};
+    // Health bar configuration - adjusted for 2D orthographic projection
+    // Positions near top of screen (Y=30) for health bars
+    config.startPos = {-70.0f, 30.0f};
+    config.endPos = {-550.0f, 30.0f};
     config.thickness = 10.0f;
     config.startColor = Color(1.0f, 1.0f, 0.078f, 1.0f);  // Yellow when low
     config.endColor = Color(0.078f, 1.0f, 0.078f, 1.0f);  // Green when full
@@ -115,9 +116,10 @@ HUD::GaugeConfig HUD::createHealthBarConfig() {
 
 HUD::GaugeConfig HUD::createSuperBarConfig() {
     GaugeConfig config;
-    // Super bar configuration matching SuperBar.json
-    config.startPos = {-80.0f, -370.0f};
-    config.endPos = {-520.0f, -370.0f};
+    // Super bar configuration - adjusted for 2D orthographic projection
+    // Positions near bottom of screen (Y=370) for super meters
+    config.startPos = {-80.0f, 370.0f};
+    config.endPos = {-520.0f, 370.0f};
     config.thickness = 12.0f;
     config.startColor = Color(0.314f, 0.314f, 1.0f, 1.0f);  // Dark blue
     config.endColor = Color(0.494f, 0.494f, 1.0f, 1.0f);   // Light blue
@@ -168,9 +170,9 @@ void HUD::update() {
 void HUD::draw() {
     if (!game || !game->screen) return;
     
-    // Get screen center for positioning
-    float screenCenterX = game->internalResolution.first / 2.0f;
-    float screenCenterY = game->internalResolution.second / 2.0f;
+    // Get screen center for positioning - use actual resolution, not internal resolution
+    float screenCenterX = game->resolution.first / 2.0f;
+    float screenCenterY = game->resolution.second / 2.0f;
     
     // Draw all health bars
     for (auto& bar : healthBars) {
