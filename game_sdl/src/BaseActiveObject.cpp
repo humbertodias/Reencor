@@ -90,6 +90,9 @@ void BaseActiveObject::update(const std::vector<float>& cameraFocusPoint) {
             if (frameTimer >= currentFrame.dur) {
                 frameTimer = 0;
                 animationFrame = (animationFrame + 1) % state.framedata.size();
+                
+                // Update collision boxes for new frame
+                updateFrameBoxes();
             }
         }
     }
@@ -309,6 +312,82 @@ void BaseActiveObject::loadBoxesFromJSON() {
     currentBoxes = defaultBoxes;
 }
 
+void BaseActiveObject::updateFrameBoxes() {
+    // Start with default boxes (hurtbox and pushbox from global JSON)
+    currentBoxes.hurtbox = defaultBoxes.hurtbox;
+    currentBoxes.pushbox = defaultBoxes.pushbox;
+    currentBoxes.hitbox.clear();  // Clear hitboxes - they come from frame data
+    
+    // Check if we have state data and JSON
+    if (dict.find("json") == dict.end() || dict.at("json") == nullptr) {
+        return;
+    }
+    
+    if (states.empty() || states.find(currentState) == states.end()) {
+        return;
+    }
+    
+    auto& state = states[currentState];
+    if (state.framedata.empty() || animationFrame >= state.framedata.size()) {
+        return;
+    }
+    
+    // Get the current frame
+    json* jsonData = static_cast<json*>(dict.at("json"));
+    if (!jsonData->contains("states") || !(*jsonData)["states"].contains(currentState)) {
+        return;
+    }
+    
+    auto& stateJson = (*jsonData)["states"][currentState];
+    if (!stateJson.contains("framedata") || !stateJson["framedata"].is_array()) {
+        return;
+    }
+    
+    if (animationFrame >= stateJson["framedata"].size()) {
+        return;
+    }
+    
+    auto& frameJson = stateJson["framedata"][animationFrame];
+    
+    // Scale factor for collision boxes
+    const float COLLISION_BOX_SCALE = 0.25f;
+    
+    // Load hitboxes from this frame if they exist
+    if (frameJson.contains("hitbox") && frameJson["hitbox"].is_object()) {
+        auto& hitboxData = frameJson["hitbox"];
+        if (hitboxData.contains("boxes") && hitboxData["boxes"].is_array()) {
+            for (const auto& boxArray : hitboxData["boxes"]) {
+                if (boxArray.is_array() && boxArray.size() >= 4) {
+                    float x = boxArray[0].get<float>() * COLLISION_BOX_SCALE;
+                    float jsonY = boxArray[1].get<float>() * COLLISION_BOX_SCALE;
+                    float w = boxArray[2].get<float>() * COLLISION_BOX_SCALE;
+                    float h = boxArray[3].get<float>() * COLLISION_BOX_SCALE;
+                    float y = -jsonY;
+                    currentBoxes.hitbox.emplace_back(x, y, w, h);
+                }
+            }
+        }
+    }
+    
+    // Load per-frame hurtboxes if they exist (override default)
+    if (frameJson.contains("hurtbox") && frameJson["hurtbox"].is_object()) {
+        auto& hurtboxData = frameJson["hurtbox"];
+        if (hurtboxData.contains("boxes") && hurtboxData["boxes"].is_array()) {
+            currentBoxes.hurtbox.clear();  // Replace default hurtboxes
+            for (const auto& boxArray : hurtboxData["boxes"]) {
+                if (boxArray.is_array() && boxArray.size() >= 4) {
+                    float x = boxArray[0].get<float>() * COLLISION_BOX_SCALE;
+                    float jsonY = boxArray[1].get<float>() * COLLISION_BOX_SCALE;
+                    float w = boxArray[2].get<float>() * COLLISION_BOX_SCALE;
+                    float h = boxArray[3].get<float>() * COLLISION_BOX_SCALE;
+                    float y = -jsonY;
+                    currentBoxes.hurtbox.emplace_back(x, y, w, h);
+                }
+            }
+        }
+    }
+}
+
 void BaseActiveObject::draw(void* screen, const std::vector<float>& cameraPos) {
     if (pos.size() < 2) {
         std::cerr << "Warning: pos vector too small in BaseActiveObject::draw()" << std::endl;
@@ -461,4 +540,7 @@ void BaseActiveObject::setState(const std::string& stateName) {
     frame = 0;
     animationFrame = 0;
     frameTimer = 0;
+    
+    // Update collision boxes for the new state's first frame
+    updateFrameBoxes();
 }

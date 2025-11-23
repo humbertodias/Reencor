@@ -81,6 +81,9 @@ private:
     
     // Load box data from JSON
     void loadBoxesFromJSON();
+    
+    // Update boxes for current animation frame
+    void updateFrameBoxes();
 };
 
 #endif // BASEACTIVEOBJECT_H
