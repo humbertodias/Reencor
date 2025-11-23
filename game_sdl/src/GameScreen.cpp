@@ -31,6 +31,11 @@ void ModeSelectionScreen::deinit() {
 // ComboTrialScreen
 ComboTrialScreen::ComboTrialScreen(Game* game) : GameScreen(game) {
     loadObjects();
+    
+    // Initialize HUD after players are loaded
+    if (game->hud) {
+        game->hud->initialize();
+    }
 }
 
 void ComboTrialScreen::loadObjects() {

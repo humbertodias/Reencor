@@ -5,6 +5,7 @@
 #include "GameScreen.h"
 #include "AssetLoader.h"
 #include "Renderer.h"
+#include "HUD.h"
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_image.h>
 #include <iostream>
@@ -98,7 +99,8 @@ bool Game::initialize() {
     // Initialize camera and screen
     camera = std::make_shared<Camera>(0.1f);
     screen = std::make_shared<Screen>(internalResolution);
-    std::cout << "Camera and screen initialized" << std::endl;
+    hud = std::make_shared<HUD>(this);
+    std::cout << "Camera, screen, and HUD initialized" << std::endl;
 
     // Load assets
     loadAssets();
@@ -279,6 +281,11 @@ void Game::gameplay() {
         hitstop--;
     }
     
+    // Update HUD
+    if (hud) {
+        hud->update();
+    }
+    
     calculateCameraFocusPoint();
 }
 
@@ -304,6 +311,11 @@ void Game::display() {
     // Draw all game objects
     for (auto& object : objectList) {
         object->draw(screen.get(), camera->pos);
+    }
+    
+    // Draw HUD on top of everything
+    if (hud) {
+        hud->draw();
     }
 }
 
