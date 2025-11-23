@@ -1,6 +1,6 @@
 # Reencor
  
-A retro-inspired 2D fighting game featuring classic-style sprites, Pygame, and OpenGL.
+A retro-inspired 2D fighting game featuring classic-style sprites. Available in both Python (Pygame) and C++ (SDL2) versions.
 
 ## Demo Video
 
@@ -16,12 +16,21 @@ Check out the gameplay demo on Reddit:
 - Classic 2D fighting mechanics
 - Keyboard and joystick support
 - OpenGL rendering
+- Available in both Python (Pygame) and C++ (SDL2) versions
 
 ## Requirements
 
+### Python Version
 - Python 3.9+
 - [Pygame](https://www.pygame.org/)
 - [PyOpenGL](http://pyopengl.sourceforge.net/)
+
+### C++ Version
+- C++17 compatible compiler
+- CMake 3.15+
+- SDL2, SDL2_image, SDL2_mixer
+- OpenGL
+- See [game_sdl/README.md](game_sdl/README.md) for platform-specific installation instructions
 
 ## Sprites
 
@@ -55,7 +64,23 @@ Unzip the file and place the folder in the `Assets/images` folder before running
 
 ## How to Run
 
+### Python Version (Pygame)
+
 ```bash
 git clone https://github.com/Ranguel/Reencor
 cd Reencor
 python main.py
+```
+
+### C++ Version (SDL2)
+
+The C++ version is located in the `game_sdl` folder. See [game_sdl/README.md](game_sdl/README.md) for detailed build instructions.
+
+Quick start:
+```bash
+cd game_sdl
+mkdir build && cd build
+cmake ..
+make
+./reencor
+```
