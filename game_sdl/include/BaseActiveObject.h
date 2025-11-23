@@ -28,6 +28,14 @@ struct CollisionBox {
         : x(x), y(y), width(w), height(h) {}
 };
 
+// Box collection for different collision types
+struct CharacterBoxes {
+    std::vector<CollisionBox> hurtbox;
+    std::vector<CollisionBox> hitbox;
+    std::vector<CollisionBox> pushbox;
+    std::vector<CollisionBox> grabbox;
+};
+
 class BaseActiveObject : public GameObject {
 public:
     BaseActiveObject(Game* game, 
@@ -46,7 +54,10 @@ public:
     void setState(const std::string& stateName);
     std::string getState() const { return currentState; }
     
-    // Collision boxes
+    // Collision boxes - now returns all boxes for the current state
+    const CharacterBoxes& getBoxes() const { return currentBoxes; }
+    
+    // Legacy single-box methods for backward compatibility
     CollisionBox getHurtbox() const;
     CollisionBox getHitbox() const;
     CollisionBox getPushbox() const;
@@ -64,6 +75,12 @@ private:
     int frame;  // Current frame counter within the state
     int animationFrame;  // Current frame index in the framedata array
     int frameTimer;  // Timer for current frame duration
+    
+    CharacterBoxes defaultBoxes;  // Default boxes from JSON
+    CharacterBoxes currentBoxes;  // Current boxes (updated per state/frame)
+    
+    // Load box data from JSON
+    void loadBoxesFromJSON();
 };
 
 #endif // BASEACTIVEOBJECT_H

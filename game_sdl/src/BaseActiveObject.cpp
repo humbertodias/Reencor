@@ -34,6 +34,9 @@ BaseActiveObject::BaseActiveObject(Game* game,
     if (dict.find("json") != dict.end() && dict.at("json") != nullptr) {
         json* jsonData = static_cast<json*>(dict.at("json"));
         
+        // Load collision boxes from JSON
+        loadBoxesFromJSON();
+        
         // Check if JSON has a "states" object
         if (jsonData->contains("states") && (*jsonData)["states"].is_object()) {
             auto& statesJson = (*jsonData)["states"];
@@ -228,6 +231,70 @@ void BaseActiveObject::update(const std::vector<float>& cameraFocusPoint) {
     frame++;
 }
 
+// Load collision boxes from character JSON
+void BaseActiveObject::loadBoxesFromJSON() {
+    if (dict.find("json") == dict.end() || dict.at("json") == nullptr) {
+        return;
+    }
+    
+    json* jsonData = static_cast<json*>(dict.at("json"));
+    
+    if (!jsonData->contains("boxes")) {
+        std::cout << "No boxes data in JSON" << std::endl;
+        return;
+    }
+    
+    auto& boxesData = (*jsonData)["boxes"];
+    
+    // Load hurtbox
+    if (boxesData.contains("hurtbox") && boxesData["hurtbox"].contains("boxes")) {
+        for (const auto& boxArray : boxesData["hurtbox"]["boxes"]) {
+            if (boxArray.is_array() && boxArray.size() >= 4) {
+                defaultBoxes.hurtbox.emplace_back(
+                    boxArray[0].get<float>(),
+                    boxArray[1].get<float>(),
+                    boxArray[2].get<float>(),
+                    boxArray[3].get<float>()
+                );
+            }
+        }
+        std::cout << "Loaded " << defaultBoxes.hurtbox.size() << " hurtboxes" << std::endl;
+    }
+    
+    // Load hitbox
+    if (boxesData.contains("hitbox") && boxesData["hitbox"].contains("boxes")) {
+        for (const auto& boxArray : boxesData["hitbox"]["boxes"]) {
+            if (boxArray.is_array() && boxArray.size() >= 4) {
+                defaultBoxes.hitbox.emplace_back(
+                    boxArray[0].get<float>(),
+                    boxArray[1].get<float>(),
+                    boxArray[2].get<float>(),
+                    boxArray[3].get<float>()
+                );
+            }
+        }
+        std::cout << "Loaded " << defaultBoxes.hitbox.size() << " hitboxes" << std::endl;
+    }
+    
+    // Load pushbox (using grabbox as pushbox)
+    if (boxesData.contains("grabbox") && boxesData["grabbox"].contains("boxes")) {
+        for (const auto& boxArray : boxesData["grabbox"]["boxes"]) {
+            if (boxArray.is_array() && boxArray.size() >= 4) {
+                defaultBoxes.pushbox.emplace_back(
+                    boxArray[0].get<float>(),
+                    boxArray[1].get<float>(),
+                    boxArray[2].get<float>(),
+                    boxArray[3].get<float>()
+                );
+            }
+        }
+        std::cout << "Loaded " << defaultBoxes.pushbox.size() << " pushboxes" << std::endl;
+    }
+    
+    // Initialize current boxes with default boxes
+    currentBoxes = defaultBoxes;
+}
+
 void BaseActiveObject::draw(void* screen, const std::vector<float>& cameraPos) {
     if (pos.size() < 2) {
         std::cerr << "Warning: pos vector too small in BaseActiveObject::draw()" << std::endl;
@@ -334,18 +401,39 @@ void BaseActiveObject::draw(void* screen, const std::vector<float>& cameraPos) {
 
 // Collision box methods
 CollisionBox BaseActiveObject::getHurtbox() const {
-    // Default hurtbox for character (approximate body)
+    // Return first hurtbox if available, otherwise use default
+    if (!currentBoxes.hurtbox.empty()) {
+        auto& box = currentBoxes.hurtbox[0];
+        // Adjust for character position and facing
+        float adjustedX = pos[0] + (face > 0 ? box.x : -box.x - box.width);
+        return CollisionBox(adjustedX, pos[1] + box.y, box.width, box.height);
+    }
+    // Fallback to default hurtbox
     return CollisionBox(pos[0] - 30.0f, pos[1] - 100.0f, 60.0f, 100.0f);
 }
 
 CollisionBox BaseActiveObject::getHitbox() const {
-    // Default hitbox for attacks (in front of character)
+    // Return first hitbox if available
+    if (!currentBoxes.hitbox.empty()) {
+        auto& box = currentBoxes.hitbox[0];
+        // Adjust for character position and facing
+        float adjustedX = pos[0] + (face > 0 ? box.x : -box.x - box.width);
+        return CollisionBox(adjustedX, pos[1] + box.y, box.width, box.height);
+    }
+    // Fallback: hitbox in front of character
     float hitboxX = (face > 0) ? pos[0] : pos[0] - 50.0f;
     return CollisionBox(hitboxX, pos[1] - 60.0f, 50.0f, 40.0f);
 }
 
 CollisionBox BaseActiveObject::getPushbox() const {
-    // Pushbox prevents characters from overlapping
+    // Return first pushbox if available
+    if (!currentBoxes.pushbox.empty()) {
+        auto& box = currentBoxes.pushbox[0];
+        // Adjust for character position and facing
+        float adjustedX = pos[0] + (face > 0 ? box.x : -box.x - box.width);
+        return CollisionBox(adjustedX, pos[1] + box.y, box.width, box.height);
+    }
+    // Fallback to default pushbox
     return CollisionBox(pos[0] - 25.0f, pos[1] - 90.0f, 50.0f, 90.0f);
 }
 

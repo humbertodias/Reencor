@@ -40,10 +40,8 @@ void CollisionSystem::calculateBoxCollisions(Game* game) {
 void CollisionSystem::drawBoxes(Game* game, std::shared_ptr<BaseActiveObject> object) {
     if (!object) return;
     
-    // Get collision boxes
-    auto hurtbox = object->getHurtbox();
-    auto hitbox = object->getHitbox();
-    auto pushbox = object->getPushbox();
+    // Get collision boxes from character
+    const auto& boxes = object->getBoxes();
     
     // Calculate screen position with camera offset
     auto& cameraPos = game->camera->pos;
@@ -53,32 +51,58 @@ void CollisionSystem::drawBoxes(Game* game, std::shared_ptr<BaseActiveObject> ob
     glDisable(GL_TEXTURE_2D);
     glLineWidth(2.0f);
     
-    // Draw hurtbox in green (character's vulnerable area)
+    // Get character position and facing for proper box positioning
+    float charX = object->pos[0];
+    float charY = object->pos[1];
+    int face = object->face;
+    
+    // Draw all hurtboxes in green (character's vulnerable area)
     glColor4f(0.0f, 1.0f, 0.0f, 0.8f);
-    glBegin(GL_LINE_LOOP);
-        glVertex2f(hurtbox.x + screenOffsetX, hurtbox.y + screenOffsetY);
-        glVertex2f(hurtbox.x + hurtbox.width + screenOffsetX, hurtbox.y + screenOffsetY);
-        glVertex2f(hurtbox.x + hurtbox.width + screenOffsetX, hurtbox.y + hurtbox.height + screenOffsetY);
-        glVertex2f(hurtbox.x + screenOffsetX, hurtbox.y + hurtbox.height + screenOffsetY);
-    glEnd();
+    for (const auto& box : boxes.hurtbox) {
+        // Adjust for character position and facing
+        float adjustedX = charX + (face > 0 ? box.x : -box.x - box.width);
+        float boxScreenX = adjustedX + screenOffsetX;
+        float boxScreenY = charY + box.y + screenOffsetY;
+        
+        glBegin(GL_LINE_LOOP);
+            glVertex2f(boxScreenX, boxScreenY);
+            glVertex2f(boxScreenX + box.width, boxScreenY);
+            glVertex2f(boxScreenX + box.width, boxScreenY + box.height);
+            glVertex2f(boxScreenX, boxScreenY + box.height);
+        glEnd();
+    }
     
-    // Draw hitbox in red (character's attack area)
+    // Draw all hitboxes in red (character's attack area)
     glColor4f(1.0f, 0.0f, 0.0f, 0.8f);
-    glBegin(GL_LINE_LOOP);
-        glVertex2f(hitbox.x + screenOffsetX, hitbox.y + screenOffsetY);
-        glVertex2f(hitbox.x + hitbox.width + screenOffsetX, hitbox.y + screenOffsetY);
-        glVertex2f(hitbox.x + hitbox.width + screenOffsetX, hitbox.y + hitbox.height + screenOffsetY);
-        glVertex2f(hitbox.x + screenOffsetX, hitbox.y + hitbox.height + screenOffsetY);
-    glEnd();
+    for (const auto& box : boxes.hitbox) {
+        // Adjust for character position and facing
+        float adjustedX = charX + (face > 0 ? box.x : -box.x - box.width);
+        float boxScreenX = adjustedX + screenOffsetX;
+        float boxScreenY = charY + box.y + screenOffsetY;
+        
+        glBegin(GL_LINE_LOOP);
+            glVertex2f(boxScreenX, boxScreenY);
+            glVertex2f(boxScreenX + box.width, boxScreenY);
+            glVertex2f(boxScreenX + box.width, boxScreenY + box.height);
+            glVertex2f(boxScreenX, boxScreenY + box.height);
+        glEnd();
+    }
     
-    // Draw pushbox in blue (prevents character overlap)
+    // Draw all pushboxes in blue (prevents character overlap)
     glColor4f(0.0f, 0.0f, 1.0f, 0.8f);
-    glBegin(GL_LINE_LOOP);
-        glVertex2f(pushbox.x + screenOffsetX, pushbox.y + screenOffsetY);
-        glVertex2f(pushbox.x + pushbox.width + screenOffsetX, pushbox.y + screenOffsetY);
-        glVertex2f(pushbox.x + pushbox.width + screenOffsetX, pushbox.y + pushbox.height + screenOffsetY);
-        glVertex2f(pushbox.x + screenOffsetX, pushbox.y + pushbox.height + screenOffsetY);
-    glEnd();
+    for (const auto& box : boxes.pushbox) {
+        // Adjust for character position and facing
+        float adjustedX = charX + (face > 0 ? box.x : -box.x - box.width);
+        float boxScreenX = adjustedX + screenOffsetX;
+        float boxScreenY = charY + box.y + screenOffsetY;
+        
+        glBegin(GL_LINE_LOOP);
+            glVertex2f(boxScreenX, boxScreenY);
+            glVertex2f(boxScreenX + box.width, boxScreenY);
+            glVertex2f(boxScreenX + box.width, boxScreenY + box.height);
+            glVertex2f(boxScreenX, boxScreenY + box.height);
+        glEnd();
+    }
     
     glEnable(GL_TEXTURE_2D);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
