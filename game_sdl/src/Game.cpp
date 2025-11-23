@@ -152,6 +152,8 @@ void Game::run() {
 void Game::screenManager() {
     std::cout << "Starting screen manager with " << screenSequence.size() << " screens" << std::endl;
     
+    const int DEBUG_FRAME_INTERVAL = 60;  // Print debug info every N frames
+    
     while (!screenSequence.empty()) {
         active = true;
         currentScreen = screenSequence.back();
@@ -207,9 +209,9 @@ void Game::screenManager() {
                 SDL_Delay(frameDelay - frameTime);
             }
             
-            // Print debug info every 60 frames
+            // Print debug info periodically
             frameCount++;
-            if (frameCount % 60 == 0) {
+            if (frameCount % DEBUG_FRAME_INTERVAL == 0) {
                 std::cout << "Frame " << frameCount << " - Objects: " << objectList.size() 
                           << ", Players: " << activePlayers.size() << std::endl;
             }
