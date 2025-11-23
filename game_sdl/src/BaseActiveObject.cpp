@@ -253,6 +253,23 @@ void BaseActiveObject::draw(void* screen, const std::vector<float>& cameraPos) {
     }
 }
 
+// Collision box methods
+CollisionBox BaseActiveObject::getHurtbox() const {
+    // Default hurtbox for character (approximate body)
+    return CollisionBox(pos[0] - 30.0f, pos[1] - 100.0f, 60.0f, 100.0f);
+}
+
+CollisionBox BaseActiveObject::getHitbox() const {
+    // Default hitbox for attacks (in front of character)
+    float hitboxX = (face > 0) ? pos[0] : pos[0] - 50.0f;
+    return CollisionBox(hitboxX, pos[1] - 60.0f, 50.0f, 40.0f);
+}
+
+CollisionBox BaseActiveObject::getPushbox() const {
+    // Pushbox prevents characters from overlapping
+    return CollisionBox(pos[0] - 25.0f, pos[1] - 90.0f, 50.0f, 90.0f);
+}
+
 void BaseActiveObject::setState(const std::string& stateName) {
     currentState = stateName;
     frame = 0;

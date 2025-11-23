@@ -21,6 +21,13 @@ struct StateData {
     std::vector<FrameData> framedata;
 };
 
+// Collision box structure
+struct CollisionBox {
+    float x, y, width, height;
+    CollisionBox(float x = 0, float y = 0, float w = 0, float h = 0) 
+        : x(x), y(y), width(w), height(h) {}
+};
+
 class BaseActiveObject : public GameObject {
 public:
     BaseActiveObject(Game* game, 
@@ -38,6 +45,11 @@ public:
     // State management
     void setState(const std::string& stateName);
     std::string getState() const { return currentState; }
+    
+    // Collision boxes
+    CollisionBox getHurtbox() const;
+    CollisionBox getHitbox() const;
+    CollisionBox getPushbox() const;
     
     // Animation data
     std::unordered_map<std::string, StateData> states;

@@ -6,6 +6,7 @@
 #include "AssetLoader.h"
 #include "Renderer.h"
 #include "HUD.h"
+#include "CollisionSystem.h"
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_image.h>
 #include <iostream>
@@ -256,6 +257,11 @@ void Game::eventHandler() {
                 if (event.key.keysym.sym == SDLK_9) {
                     active = false;
                 }
+                // Toggle collision box rendering with 'B' key
+                if (event.key.keysym.sym == SDLK_b) {
+                    showBoxes = !showBoxes;
+                    std::cout << "Collision boxes " << (showBoxes ? "enabled" : "disabled") << std::endl;
+                }
                 break;
                 
             case SDL_JOYDEVICEADDED:
@@ -276,6 +282,9 @@ void Game::gameplay() {
     for (auto& object : objectList) {
         object->update(cameraFocusPoint);
     }
+    
+    // Calculate collision detection
+    CollisionSystem::calculateBoxCollisions(this);
     
     if (hitstop > 0) {
         hitstop--;
@@ -311,6 +320,13 @@ void Game::display() {
     // Draw all game objects
     for (auto& object : objectList) {
         object->draw(screen.get(), camera->pos);
+    }
+    
+    // Draw collision boxes if enabled
+    if (showBoxes) {
+        for (auto& player : activePlayers) {
+            CollisionSystem::drawBoxes(this, player);
+        }
     }
     
     // Draw HUD on top of everything
