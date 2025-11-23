@@ -6,6 +6,7 @@
 #include "AssetLoader.h"
 #include "Renderer.h"
 #include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_image.h>
 #include <iostream>
 
 #include "BaseActiveObject.h"
@@ -289,18 +290,24 @@ void Game::calculateCameraFocusPoint() {
 
     // Calculate average position of active players
     float sumX = 0.0f, sumY = 0.0f;
+    int validPlayers = 0;
+    
     for (const auto& player : activePlayers) {
         if (player && player->pos.size() >= 2) {
             sumX += player->pos[0];
             sumY += player->pos[1];
+            validPlayers++;
         }
     }
     
-    pos[0] = sumX / activePlayers.size();
-    pos[1] = (sumY / activePlayers.size()) + resolution.second * 0.6f;
-    pos[2] = 400.0f;
-    
-    cameraFocusPoint = pos;
+    // Only update if we have valid players
+    if (validPlayers > 0) {
+        pos[0] = sumX / validPlayers;
+        pos[1] = (sumY / validPlayers) + resolution.second * 0.6f;
+        pos[2] = 400.0f;
+        
+        cameraFocusPoint = pos;
+    }
 }
 
 void Game::nextScreen(const std::vector<std::string>& newScreenSequence) {
