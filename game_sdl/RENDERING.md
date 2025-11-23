@@ -1,8 +1,21 @@
 # Rendering Implementation - C++ SDL2 Version
 
-## Current State
+## Current State (WORKING!)
 
-The game now renders basic placeholder graphics to verify the rendering pipeline is working.
+**Status**: Rendering is now functional! The game displays placeholder graphics.
+
+### Fixed Issues
+- ✅ **Rendering order bug fixed** (commit bf73688): Screen now clears BEFORE drawing, not after
+- ✅ Players render as colored rectangles
+- ✅ Ground line visible
+- ✅ Debug output confirms rendering is active
+
+### What You Should See
+When you run the game, you should see:
+- A **640x400 window** with black background
+- A **gray horizontal line** at screen center (ground)
+- A **blue rectangle** on the left (Player 1)
+- An **orange rectangle** on the right (Player 2)
 
 ## What's Rendered
 
@@ -28,6 +41,29 @@ The game now renders basic placeholder graphics to verify the rendering pipeline
 - **Team**: 2
 - **Control**: Second input device or dummy input
 
+## Debug Output
+
+Console output shows rendering is working:
+```
+Game::display() called 60 times, drawing 2 objects
+Drawing player 1 at world(-300,-1) -> screen(20,199)
+Drawing player 2 at world(300,-1) -> screen(620,199)
+Frame 60 - Objects: 2, Players: 2
+```
+
+## Known Issues & Limitations
+
+### JSON Loading Not Implemented
+- `AssetLoader::loadJSON()` returns `nullptr` (line 97 in AssetLoader.cpp)
+- Output shows: "Loaded 2632 images, 1 sounds, **0 objects**"
+- Stage JSON files exist but aren't parsed yet
+- Game works with placeholder graphics without JSON data
+
+### Stage Name Typo
+The Training stage JSON has a typo:
+- File: `Assets/objects/Reencor/Training.json`
+- Line 3: `"name": "Trining Stage"` (should be "Training")
+
 ## Coordinate System
 
 ### World to Screen Conversion
@@ -43,10 +79,15 @@ screenY = worldY - cameraY + 200  // 200 = 400/2 (screen center)
 
 ## Rendering Pipeline
 
-1. **Screen::display()** - Clear screen and reset matrix
-2. **Game::display()** - Draw ground line, then all objects
-3. **BaseActiveObject::draw()** - Draw player rectangles
-4. **SDL_GL_SwapWindow()** - Display the frame
+**Correct Order (Fixed in bf73688):**
+1. **Screen::clear()** - Clear the frame buffer (black screen)
+2. **glLoadIdentity()** - Reset transformation matrix
+3. **Game::display()** - Draw ground line, then all objects
+4. **BaseActiveObject::draw()** - Draw player rectangles
+5. **SDL_GL_SwapWindow()** - Display the frame
+
+**Previous Bug:**
+The order was: Draw → Clear → Swap, which cleared the screen after drawing, resulting in a black screen.
 
 ## Movement
 
