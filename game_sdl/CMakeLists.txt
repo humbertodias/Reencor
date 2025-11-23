@@ -11,6 +11,18 @@ pkg_check_modules(SDL2_IMAGE REQUIRED SDL2_image)
 pkg_check_modules(SDL2_MIXER REQUIRED SDL2_mixer)
 pkg_check_modules(SDL2_GFX REQUIRED SDL2_gfx)
 
+# Try to find nlohmann_json
+find_package(nlohmann_json QUIET)
+if(NOT nlohmann_json_FOUND)
+    # If not found as package, check if it's installed system-wide
+    find_path(NLOHMANN_JSON_INCLUDE_DIR nlohmann/json.hpp
+        PATHS /usr/include /usr/local/include)
+    if(NLOHMANN_JSON_INCLUDE_DIR)
+        set(nlohmann_json_FOUND TRUE)
+        message(STATUS "Found nlohmann_json include dir: ${NLOHMANN_JSON_INCLUDE_DIR}")
+    endif()
+endif()
+
 # Include directories
 include_directories(
     ${SDL2_INCLUDE_DIRS}
@@ -19,6 +31,10 @@ include_directories(
     ${OPENGL_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+if(nlohmann_json_FOUND AND NLOHMANN_JSON_INCLUDE_DIR)
+    include_directories(${NLOHMANN_JSON_INCLUDE_DIR})
+endif()
 
 # Print include directories
 message(STATUS "SDL2 include dirs: ${SDL2_INCLUDE_DIRS}")
