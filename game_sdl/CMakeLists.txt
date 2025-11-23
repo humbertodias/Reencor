@@ -61,6 +61,8 @@ set(SOURCES
     src/GameScreen.cpp
     src/Renderer.cpp
     src/CollisionSystem.cpp
+    src/HUD.cpp
+    src/ComboTrial.cpp
 )
 
 # Create executable

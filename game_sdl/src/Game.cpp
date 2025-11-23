@@ -5,6 +5,8 @@
 #include "GameScreen.h"
 #include "AssetLoader.h"
 #include "Renderer.h"
+#include "HUD.h"
+#include "CollisionSystem.h"
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_image.h>
 #include <iostream>
@@ -98,7 +100,8 @@ bool Game::initialize() {
     // Initialize camera and screen
     camera = std::make_shared<Camera>(0.1f);
     screen = std::make_shared<Screen>(internalResolution);
-    std::cout << "Camera and screen initialized" << std::endl;
+    hud = std::make_shared<HUD>(this);
+    std::cout << "Camera, screen, and HUD initialized" << std::endl;
 
     // Load assets
     loadAssets();
@@ -254,6 +257,11 @@ void Game::eventHandler() {
                 if (event.key.keysym.sym == SDLK_9) {
                     active = false;
                 }
+                // Toggle collision box rendering with 'B' key
+                if (event.key.keysym.sym == SDLK_b) {
+                    showBoxes = !showBoxes;
+                    std::cout << "Collision boxes " << (showBoxes ? "enabled" : "disabled") << std::endl;
+                }
                 break;
                 
             case SDL_JOYDEVICEADDED:
@@ -275,8 +283,16 @@ void Game::gameplay() {
         object->update(cameraFocusPoint);
     }
     
+    // Calculate collision detection
+    CollisionSystem::calculateBoxCollisions(this);
+    
     if (hitstop > 0) {
         hitstop--;
+    }
+    
+    // Update HUD
+    if (hud) {
+        hud->update();
     }
     
     calculateCameraFocusPoint();
@@ -295,8 +311,8 @@ void Game::display() {
     glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
     glLineWidth(2.0f);
     glBegin(GL_LINES);
-        glVertex2f(0, 200);  // Ground at y=200 (center of 400px height screen)
-        glVertex2f(640, 200);
+        glVertex2f(0, 320);  // Ground at y=320 (lower third of 400px height screen)
+        glVertex2f(640, 320);
     glEnd();
     glEnable(GL_TEXTURE_2D);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
@@ -304,6 +320,18 @@ void Game::display() {
     // Draw all game objects
     for (auto& object : objectList) {
         object->draw(screen.get(), camera->pos);
+    }
+    
+    // Draw collision boxes if enabled
+    if (showBoxes) {
+        for (auto& player : activePlayers) {
+            CollisionSystem::drawBoxes(this, player);
+        }
+    }
+    
+    // Draw HUD on top of everything
+    if (hud) {
+        hud->draw();
     }
 }
 

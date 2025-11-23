@@ -34,6 +34,9 @@ BaseActiveObject::BaseActiveObject(Game* game,
     if (dict.find("json") != dict.end() && dict.at("json") != nullptr) {
         json* jsonData = static_cast<json*>(dict.at("json"));
         
+        // Load collision boxes from JSON
+        loadBoxesFromJSON();
+        
         // Check if JSON has a "states" object
         if (jsonData->contains("states") && (*jsonData)["states"].is_object()) {
             auto& statesJson = (*jsonData)["states"];
@@ -87,6 +90,9 @@ void BaseActiveObject::update(const std::vector<float>& cameraFocusPoint) {
             if (frameTimer >= currentFrame.dur) {
                 frameTimer = 0;
                 animationFrame = (animationFrame + 1) % state.framedata.size();
+                
+                // Update collision boxes for new frame
+                updateFrameBoxes();
             }
         }
     }
@@ -98,9 +104,96 @@ void BaseActiveObject::update(const std::vector<float>& cameraFocusPoint) {
         // Determine which state we should be in based on input
         std::string targetState = "Stand";
         bool isMoving = false;
+        // Input axis mapping: axis[1] > 0 = DOWN, axis[1] < 0 = UP
+        bool isCrouching = (axis[1] > 0);  // DOWN
+        bool isJumping = (axis[1] < 0);     // UP
         
+        // Priority: Attacks > Jump > Movement > Crouch > Stand
+        
+        // Check for attack buttons (punches)
+        if (inputDevice->getButton("LP")) {
+            // Light Punch (Jab)
+            if (isCrouching && states.find("Crouch Jab") != states.end()) {
+                targetState = "Crouch Jab";
+            } else if (states.find("Stand Jab") != states.end()) {
+                targetState = "Stand Jab";
+            } else if (states.find("Jab") != states.end()) {
+                targetState = "Jab";
+            }
+        } else if (inputDevice->getButton("MP")) {
+            // Medium Punch (Strong)
+            if (isCrouching && states.find("Crouch Strong") != states.end()) {
+                targetState = "Crouch Strong";
+            } else if (states.find("Stand Strong") != states.end()) {
+                targetState = "Stand Strong";
+            } else if (states.find("Strong") != states.end()) {
+                targetState = "Strong";
+            }
+        } else if (inputDevice->getButton("HP")) {
+            // Heavy Punch (Fierce)
+            if (isCrouching && states.find("Crouch Fierce") != states.end()) {
+                targetState = "Crouch Fierce";
+            } else if (states.find("Stand Fierce") != states.end()) {
+                targetState = "Stand Fierce";
+            } else if (states.find("Fierce") != states.end()) {
+                targetState = "Fierce";
+            }
+        }
+        // Check for attack buttons (kicks)
+        else if (inputDevice->getButton("LK")) {
+            // Light Kick (Short)
+            if (isCrouching && states.find("Crouch Short") != states.end()) {
+                targetState = "Crouch Short";
+            } else if (states.find("Stand Short") != states.end()) {
+                targetState = "Stand Short";
+            } else if (states.find("Short") != states.end()) {
+                targetState = "Short";
+            }
+        } else if (inputDevice->getButton("MK")) {
+            // Medium Kick (Forward)
+            if (isCrouching && states.find("Crouch Forward") != states.end()) {
+                targetState = "Crouch Forward";
+            } else if (states.find("Stand Forward") != states.end()) {
+                targetState = "Stand Forward";
+            } else if (states.find("Forward") != states.end()) {
+                targetState = "Forward";
+            }
+        } else if (inputDevice->getButton("HK")) {
+            // Heavy Kick (Roundhouse)
+            if (isCrouching && states.find("Crouch Roundhouse") != states.end()) {
+                targetState = "Crouch Roundhouse";
+            } else if (states.find("Stand Roundhouse") != states.end()) {
+                targetState = "Stand Roundhouse";
+            } else if (states.find("Roundhouse") != states.end()) {
+                targetState = "Roundhouse";
+            }
+        }
+        // Check for jump (only if no attack buttons pressed)
+        else if (isJumping) {
+            // Check for directional jumps
+            if (axis[0] > 0) {
+                // Forward jump
+                if (states.find("Forward Jump") != states.end()) {
+                    targetState = "Forward Jump";
+                } else if (states.find("Neutral Jump") != states.end()) {
+                    targetState = "Neutral Jump";
+                }
+            } else if (axis[0] < 0) {
+                // Backward jump
+                if (states.find("Backward Jump") != states.end()) {
+                    targetState = "Backward Jump";
+                } else if (states.find("Neutral Jump") != states.end()) {
+                    targetState = "Neutral Jump";
+                }
+            } else {
+                // Neutral jump
+                if (states.find("Neutral Jump") != states.end()) {
+                    targetState = "Neutral Jump";
+                }
+            }
+        }
         // Check for forward/backward movement
-        if (axis[0] < 0) {
+        else if (axis[0] < 0) {
             isMoving = true;
             // Try various walk state names that might be in the JSON
             if (states.find("Walk Backward") != states.end()) {
@@ -125,18 +218,10 @@ void BaseActiveObject::update(const std::vector<float>& cameraFocusPoint) {
             // Move character
             this->pos[0] += MOVEMENT_SPEED * face;
         }
-        
-        // Check for crouch
-        if (axis[1] < 0 && !isMoving) {
+        // Check for crouch (only if not moving or attacking)
+        else if (isCrouching && !isMoving) {
             if (states.find("Crouch") != states.end()) {
                 targetState = "Crouch";
-            }
-        }
-        
-        // Check for jump (axis[1] > 0 means up)
-        if (axis[1] > 0 && !isMoving) {
-            if (states.find("Neutral Jump") != states.end()) {
-                targetState = "Neutral Jump";
             }
         }
         
@@ -149,6 +234,160 @@ void BaseActiveObject::update(const std::vector<float>& cameraFocusPoint) {
     frame++;
 }
 
+// Load collision boxes from character JSON
+void BaseActiveObject::loadBoxesFromJSON() {
+    if (dict.find("json") == dict.end() || dict.at("json") == nullptr) {
+        return;
+    }
+    
+    json* jsonData = static_cast<json*>(dict.at("json"));
+    
+    if (!jsonData->contains("boxes")) {
+        std::cout << "No boxes data in JSON" << std::endl;
+        return;
+    }
+    
+    auto& boxesData = (*jsonData)["boxes"];
+    
+    // Scale factor to convert from sprite space to screen space
+    // Boxes in JSON are designed for sprites at 4x current screen resolution
+    const float COLLISION_BOX_SCALE = 0.25f;
+    
+    // Load hurtbox
+    if (boxesData.contains("hurtbox") && boxesData["hurtbox"].contains("boxes")) {
+        for (const auto& boxArray : boxesData["hurtbox"]["boxes"]) {
+            if (boxArray.is_array() && boxArray.size() >= 4) {
+                // Box coordinates from JSON: [x, y, width, height]
+                // JSON Y is measured from top of sprite downward
+                // We need Y relative to character ground position (Y=0)
+                // Scale down boxes (designed for 4x larger sprites)
+                float x = boxArray[0].get<float>() * COLLISION_BOX_SCALE;
+                float jsonY = boxArray[1].get<float>() * COLLISION_BOX_SCALE;
+                float w = boxArray[2].get<float>() * COLLISION_BOX_SCALE;
+                float h = boxArray[3].get<float>() * COLLISION_BOX_SCALE;
+                
+                // Convert Y from sprite-top-relative to ground-relative
+                // JSON Y is distance from top of sprite downward
+                // We need Y as distance from ground upward
+                // Negative Y in JSON space (-jsonY) converts to upward from ground
+                float y = -jsonY;
+                
+                defaultBoxes.hurtbox.emplace_back(x, y, w, h);
+            }
+        }
+        std::cout << "Loaded " << defaultBoxes.hurtbox.size() << " hurtboxes" << std::endl;
+    }
+    
+    // Load hitbox
+    if (boxesData.contains("hitbox") && boxesData["hitbox"].contains("boxes")) {
+        for (const auto& boxArray : boxesData["hitbox"]["boxes"]) {
+            if (boxArray.is_array() && boxArray.size() >= 4) {
+                float x = boxArray[0].get<float>() * COLLISION_BOX_SCALE;
+                float jsonY = boxArray[1].get<float>() * COLLISION_BOX_SCALE;
+                float w = boxArray[2].get<float>() * COLLISION_BOX_SCALE;
+                float h = boxArray[3].get<float>() * COLLISION_BOX_SCALE;
+                float y = -jsonY;
+                defaultBoxes.hitbox.emplace_back(x, y, w, h);
+            }
+        }
+        std::cout << "Loaded " << defaultBoxes.hitbox.size() << " hitboxes" << std::endl;
+    }
+    
+    // Load pushbox (using grabbox as pushbox)
+    if (boxesData.contains("grabbox") && boxesData["grabbox"].contains("boxes")) {
+        for (const auto& boxArray : boxesData["grabbox"]["boxes"]) {
+            if (boxArray.is_array() && boxArray.size() >= 4) {
+                float x = boxArray[0].get<float>() * COLLISION_BOX_SCALE;
+                float jsonY = boxArray[1].get<float>() * COLLISION_BOX_SCALE;
+                float w = boxArray[2].get<float>() * COLLISION_BOX_SCALE;
+                float h = boxArray[3].get<float>() * COLLISION_BOX_SCALE;
+                float y = -jsonY;
+                defaultBoxes.pushbox.emplace_back(x, y, w, h);
+            }
+        }
+        std::cout << "Loaded " << defaultBoxes.pushbox.size() << " pushboxes" << std::endl;
+    }
+    
+    // Initialize current boxes with default boxes
+    currentBoxes = defaultBoxes;
+}
+
+void BaseActiveObject::updateFrameBoxes() {
+    // Start with default boxes (hurtbox and pushbox from global JSON)
+    currentBoxes.hurtbox = defaultBoxes.hurtbox;
+    currentBoxes.pushbox = defaultBoxes.pushbox;
+    currentBoxes.hitbox.clear();  // Clear hitboxes - they come from frame data
+    
+    // Check if we have state data and JSON
+    if (dict.find("json") == dict.end() || dict.at("json") == nullptr) {
+        return;
+    }
+    
+    if (states.empty() || states.find(currentState) == states.end()) {
+        return;
+    }
+    
+    auto& state = states[currentState];
+    if (state.framedata.empty() || animationFrame >= state.framedata.size()) {
+        return;
+    }
+    
+    // Get the current frame
+    json* jsonData = static_cast<json*>(dict.at("json"));
+    if (!jsonData->contains("states") || !(*jsonData)["states"].contains(currentState)) {
+        return;
+    }
+    
+    auto& stateJson = (*jsonData)["states"][currentState];
+    if (!stateJson.contains("framedata") || !stateJson["framedata"].is_array()) {
+        return;
+    }
+    
+    if (animationFrame >= stateJson["framedata"].size()) {
+        return;
+    }
+    
+    auto& frameJson = stateJson["framedata"][animationFrame];
+    
+    // Scale factor for collision boxes
+    const float COLLISION_BOX_SCALE = 0.25f;
+    
+    // Load hitboxes from this frame if they exist
+    if (frameJson.contains("hitbox") && frameJson["hitbox"].is_object()) {
+        auto& hitboxData = frameJson["hitbox"];
+        if (hitboxData.contains("boxes") && hitboxData["boxes"].is_array()) {
+            for (const auto& boxArray : hitboxData["boxes"]) {
+                if (boxArray.is_array() && boxArray.size() >= 4) {
+                    float x = boxArray[0].get<float>() * COLLISION_BOX_SCALE;
+                    float jsonY = boxArray[1].get<float>() * COLLISION_BOX_SCALE;
+                    float w = boxArray[2].get<float>() * COLLISION_BOX_SCALE;
+                    float h = boxArray[3].get<float>() * COLLISION_BOX_SCALE;
+                    float y = -jsonY;
+                    currentBoxes.hitbox.emplace_back(x, y, w, h);
+                }
+            }
+        }
+    }
+    
+    // Load per-frame hurtboxes if they exist (override default)
+    if (frameJson.contains("hurtbox") && frameJson["hurtbox"].is_object()) {
+        auto& hurtboxData = frameJson["hurtbox"];
+        if (hurtboxData.contains("boxes") && hurtboxData["boxes"].is_array()) {
+            currentBoxes.hurtbox.clear();  // Replace default hurtboxes
+            for (const auto& boxArray : hurtboxData["boxes"]) {
+                if (boxArray.is_array() && boxArray.size() >= 4) {
+                    float x = boxArray[0].get<float>() * COLLISION_BOX_SCALE;
+                    float jsonY = boxArray[1].get<float>() * COLLISION_BOX_SCALE;
+                    float w = boxArray[2].get<float>() * COLLISION_BOX_SCALE;
+                    float h = boxArray[3].get<float>() * COLLISION_BOX_SCALE;
+                    float y = -jsonY;
+                    currentBoxes.hurtbox.emplace_back(x, y, w, h);
+                }
+            }
+        }
+    }
+}
+
 void BaseActiveObject::draw(void* screen, const std::vector<float>& cameraPos) {
     if (pos.size() < 2) {
         std::cerr << "Warning: pos vector too small in BaseActiveObject::draw()" << std::endl;
@@ -157,7 +396,7 @@ void BaseActiveObject::draw(void* screen, const std::vector<float>& cameraPos) {
     
     // Calculate screen position (adjust for camera)
     float screenX = pos[0] - (cameraPos.size() > 0 ? cameraPos[0] : 0) + 320; // Center on screen (640/2)
-    float screenY = pos[1] - (cameraPos.size() > 1 ? cameraPos[1] : 0) + 200; // Center on screen (400/2)
+    float screenY = pos[1] - (cameraPos.size() > 1 ? cameraPos[1] : 0) + 320; // Ground level at Y=320
     
     // Debug: Print state information once per second
     static int debugFrameCounter = 0;
@@ -253,9 +492,55 @@ void BaseActiveObject::draw(void* screen, const std::vector<float>& cameraPos) {
     }
 }
 
+// Collision box methods
+CollisionBox BaseActiveObject::getHurtbox() const {
+    // Return first hurtbox if available, otherwise use default
+    if (!currentBoxes.hurtbox.empty()) {
+        auto& box = currentBoxes.hurtbox[0];
+        // Adjust for character position and facing
+        // Box Y is already inverted (negative values go up from ground)
+        // Box coordinates are relative to character position
+        float adjustedX = pos[0] + (face > 0 ? box.x : -box.x - box.width);
+        float adjustedY = pos[1] + box.y - box.height; // Subtract height since box.y is bottom of box
+        return CollisionBox(adjustedX, adjustedY, box.width, box.height);
+    }
+    // Fallback to default hurtbox
+    return CollisionBox(pos[0] - 30.0f, pos[1] - 100.0f, 60.0f, 100.0f);
+}
+
+CollisionBox BaseActiveObject::getHitbox() const {
+    // Return first hitbox if available
+    if (!currentBoxes.hitbox.empty()) {
+        auto& box = currentBoxes.hitbox[0];
+        // Adjust for character position and facing
+        float adjustedX = pos[0] + (face > 0 ? box.x : -box.x - box.width);
+        float adjustedY = pos[1] + box.y - box.height;
+        return CollisionBox(adjustedX, adjustedY, box.width, box.height);
+    }
+    // Fallback: hitbox in front of character
+    float hitboxX = (face > 0) ? pos[0] : pos[0] - 50.0f;
+    return CollisionBox(hitboxX, pos[1] - 60.0f, 50.0f, 40.0f);
+}
+
+CollisionBox BaseActiveObject::getPushbox() const {
+    // Return first pushbox if available
+    if (!currentBoxes.pushbox.empty()) {
+        auto& box = currentBoxes.pushbox[0];
+        // Adjust for character position and facing
+        float adjustedX = pos[0] + (face > 0 ? box.x : -box.x - box.width);
+        float adjustedY = pos[1] + box.y - box.height;
+        return CollisionBox(adjustedX, adjustedY, box.width, box.height);
+    }
+    // Fallback to default pushbox
+    return CollisionBox(pos[0] - 25.0f, pos[1] - 90.0f, 50.0f, 90.0f);
+}
+
 void BaseActiveObject::setState(const std::string& stateName) {
     currentState = stateName;
     frame = 0;
     animationFrame = 0;
     frameTimer = 0;
+    
+    // Update collision boxes for the new state's first frame
+    updateFrameBoxes();
 }
