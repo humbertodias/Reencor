@@ -161,7 +161,7 @@ void Game::screenManager() {
         
         // Reset state
         hitstop = 0;
-        cameraFocusPoint = {0.0f, 0.0f, 400.0f};
+        cameraFocusPoint = {0.0f, 0.0f, -400.0f};
         superstop = 0;
         pos = {10.0f, 0.0f, 0.0f};
         showBoxes = false;
@@ -183,11 +183,10 @@ void Game::eventHandler() {
             case SDL_KEYDOWN:
                 if (event.key.keysym.sym == SDLK_0) {
                     active = false;
-                    exit(0);
+                    screenSequence.clear();
                 }
                 if (event.key.keysym.sym == SDLK_9) {
                     active = false;
-                    screenManager();
                 }
                 break;
                 

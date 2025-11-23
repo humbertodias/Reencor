@@ -2,6 +2,9 @@
 #include "Game.h"
 #include "InputDevice.h"
 
+// Movement speed constant
+constexpr float MOVEMENT_SPEED = 5.0f;
+
 BaseActiveObject::BaseActiveObject(Game* game, 
                                   const std::unordered_map<std::string, void*>& dict,
                                   const std::vector<float>& pos,
@@ -31,9 +34,9 @@ void BaseActiveObject::update(const std::vector<float>& cameraFocusPoint) {
         
         // Basic movement logic
         if (axis[0] < 0) {
-            this->pos[0] -= 5.0f * face;
+            this->pos[0] -= MOVEMENT_SPEED * face;
         } else if (axis[0] > 0) {
-            this->pos[0] += 5.0f * face;
+            this->pos[0] += MOVEMENT_SPEED * face;
         }
         
         if (axis[1] < 0) {
