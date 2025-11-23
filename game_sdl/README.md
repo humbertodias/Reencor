@@ -89,6 +89,7 @@ game_sdl/
 │   ├── GameScreen.h       # Game screens/modes
 │   ├── AssetLoader.h      # Asset loading system
 │   ├── Renderer.h         # OpenGL rendering utilities
+│   ├── HUD.h              # HUD/UI system with gauges
 │   └── CollisionSystem.h  # Collision detection
 ├── src/                    # Implementation files
 │   ├── main.cpp
@@ -101,6 +102,7 @@ game_sdl/
 │   ├── GameScreen.cpp
 │   ├── AssetLoader.cpp
 │   ├── Renderer.cpp
+│   ├── HUD.cpp            # HUD/UI implementation
 │   └── CollisionSystem.cpp
 └── README.md              # This file
 ```
@@ -118,7 +120,19 @@ game_sdl/
 7. **GameScreen**: Different game modes (title, combo trial, etc.)
 8. **AssetLoader**: Loads images, sounds, and JSON data
 9. **Renderer**: OpenGL rendering utilities
-10. **CollisionSystem**: Handles collision detection and response
+10. **HUD**: Heads-Up Display system with health bars and super meters
+11. **CollisionSystem**: Handles collision detection and response
+
+### HUD System
+
+The HUD system renders UI elements like health bars and super meters for each player:
+
+- **Health Bars**: Display player health with color gradient (yellow when low, green when full)
+- **Super Meters**: Multi-level gauge for special moves with blinking effect when full
+- **Configurable**: Gauge positions, colors, and behavior match the Python version's JSON configuration
+- **Performance**: Rendered using OpenGL lines with minimal overhead
+
+The HUD is automatically initialized when players are loaded and updates/renders each frame.
 
 ### Key Differences from Pygame Version
 
