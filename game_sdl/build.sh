@@ -59,3 +59,4 @@ echo "=========================================="
 echo -e "${GREEN}Build completed successfully!${NC}"
 echo "Run the game with: ./build/reencor"
 echo "=========================================="
+
