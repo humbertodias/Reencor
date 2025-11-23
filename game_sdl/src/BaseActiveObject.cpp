@@ -98,9 +98,95 @@ void BaseActiveObject::update(const std::vector<float>& cameraFocusPoint) {
         // Determine which state we should be in based on input
         std::string targetState = "Stand";
         bool isMoving = false;
+        bool isCrouching = (axis[1] > 0);  // axis[1] > 0 is down
+        bool isJumping = (axis[1] < 0);     // axis[1] < 0 is up
         
+        // Priority: Attacks > Jump > Movement > Crouch > Stand
+        
+        // Check for attack buttons (punches)
+        if (inputDevice->getButton("LP")) {
+            // Light Punch (Jab)
+            if (isCrouching && states.find("Crouch Jab") != states.end()) {
+                targetState = "Crouch Jab";
+            } else if (states.find("Stand Jab") != states.end()) {
+                targetState = "Stand Jab";
+            } else if (states.find("Jab") != states.end()) {
+                targetState = "Jab";
+            }
+        } else if (inputDevice->getButton("MP")) {
+            // Medium Punch (Strong)
+            if (isCrouching && states.find("Crouch Strong") != states.end()) {
+                targetState = "Crouch Strong";
+            } else if (states.find("Stand Strong") != states.end()) {
+                targetState = "Stand Strong";
+            } else if (states.find("Strong") != states.end()) {
+                targetState = "Strong";
+            }
+        } else if (inputDevice->getButton("HP")) {
+            // Heavy Punch (Fierce)
+            if (isCrouching && states.find("Crouch Fierce") != states.end()) {
+                targetState = "Crouch Fierce";
+            } else if (states.find("Stand Fierce") != states.end()) {
+                targetState = "Stand Fierce";
+            } else if (states.find("Fierce") != states.end()) {
+                targetState = "Fierce";
+            }
+        }
+        // Check for attack buttons (kicks)
+        else if (inputDevice->getButton("LK")) {
+            // Light Kick (Short)
+            if (isCrouching && states.find("Crouch Short") != states.end()) {
+                targetState = "Crouch Short";
+            } else if (states.find("Stand Short") != states.end()) {
+                targetState = "Stand Short";
+            } else if (states.find("Short") != states.end()) {
+                targetState = "Short";
+            }
+        } else if (inputDevice->getButton("MK")) {
+            // Medium Kick (Forward)
+            if (isCrouching && states.find("Crouch Forward") != states.end()) {
+                targetState = "Crouch Forward";
+            } else if (states.find("Stand Forward") != states.end()) {
+                targetState = "Stand Forward";
+            } else if (states.find("Forward") != states.end()) {
+                targetState = "Forward";
+            }
+        } else if (inputDevice->getButton("HK")) {
+            // Heavy Kick (Roundhouse)
+            if (isCrouching && states.find("Crouch Roundhouse") != states.end()) {
+                targetState = "Crouch Roundhouse";
+            } else if (states.find("Stand Roundhouse") != states.end()) {
+                targetState = "Stand Roundhouse";
+            } else if (states.find("Roundhouse") != states.end()) {
+                targetState = "Roundhouse";
+            }
+        }
+        // Check for jump (only if no attack buttons pressed)
+        else if (isJumping) {
+            // Check for directional jumps
+            if (axis[0] > 0) {
+                // Forward jump
+                if (states.find("Forward Jump") != states.end()) {
+                    targetState = "Forward Jump";
+                } else if (states.find("Neutral Jump") != states.end()) {
+                    targetState = "Neutral Jump";
+                }
+            } else if (axis[0] < 0) {
+                // Backward jump
+                if (states.find("Backward Jump") != states.end()) {
+                    targetState = "Backward Jump";
+                } else if (states.find("Neutral Jump") != states.end()) {
+                    targetState = "Neutral Jump";
+                }
+            } else {
+                // Neutral jump
+                if (states.find("Neutral Jump") != states.end()) {
+                    targetState = "Neutral Jump";
+                }
+            }
+        }
         // Check for forward/backward movement
-        if (axis[0] < 0) {
+        else if (axis[0] < 0) {
             isMoving = true;
             // Try various walk state names that might be in the JSON
             if (states.find("Walk Backward") != states.end()) {
@@ -125,18 +211,10 @@ void BaseActiveObject::update(const std::vector<float>& cameraFocusPoint) {
             // Move character
             this->pos[0] += MOVEMENT_SPEED * face;
         }
-        
-        // Check for crouch
-        if (axis[1] < 0 && !isMoving) {
+        // Check for crouch (only if not moving or attacking)
+        else if (isCrouching && !isMoving) {
             if (states.find("Crouch") != states.end()) {
                 targetState = "Crouch";
-            }
-        }
-        
-        // Check for jump (axis[1] > 0 means up)
-        if (axis[1] > 0 && !isMoving) {
-            if (states.find("Neutral Jump") != states.end()) {
-                targetState = "Neutral Jump";
             }
         }
         
