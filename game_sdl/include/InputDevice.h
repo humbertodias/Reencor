@@ -21,7 +21,7 @@ public:
     void draw(void* screen, const std::vector<float>& cameraPos);
 
     bool getButton(const std::string& button) const;
-    std::vector<int> getAxis() const;
+    std::vector<float> getAxis() const;
 
 private:
     Game* game;
@@ -32,7 +32,7 @@ private:
     
     // Button states
     bool buttons[16];
-    int axis[2];
+    float axis[2];
 
     void updateKeyboard();
     void updateJoystick();

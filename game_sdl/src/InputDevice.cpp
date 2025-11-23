@@ -54,20 +54,20 @@ void InputDevice::updateKeyboard() {
     buttons[9] = keyState[SDL_SCANCODE_E];  // Heavy Kick
     
     // Convert to axis
-    axis[0] = 0;
-    axis[1] = 0;
-    if (buttons[0]) axis[0] = -1;  // Left
-    if (buttons[1]) axis[0] = 1;   // Right
-    if (buttons[2]) axis[1] = 1;   // Down
-    if (buttons[3]) axis[1] = -1;  // Up
+    axis[0] = 0.0f;
+    axis[1] = 0.0f;
+    if (buttons[0]) axis[0] = -1.0f;  // Left
+    if (buttons[1]) axis[0] = 1.0f;   // Right
+    if (buttons[2]) axis[1] = 1.0f;   // Down
+    if (buttons[3]) axis[1] = -1.0f;  // Up
 }
 
 void InputDevice::updateJoystick() {
     if (!joystick) return;
     
-    // Update axis
-    axis[0] = SDL_JoystickGetAxis(joystick, 0) / 32767;
-    axis[1] = SDL_JoystickGetAxis(joystick, 1) / 32767;
+    // Update axis with proper float conversion
+    axis[0] = SDL_JoystickGetAxis(joystick, 0) / 32767.0f;
+    axis[1] = SDL_JoystickGetAxis(joystick, 1) / 32767.0f;
     
     // Update buttons
     int numButtons = SDL_JoystickNumButtons(joystick);
@@ -87,7 +87,7 @@ bool InputDevice::getButton(const std::string& button) const {
     return false;
 }
 
-std::vector<int> InputDevice::getAxis() const {
+std::vector<float> InputDevice::getAxis() const {
     return {axis[0], axis[1]};
 }
 

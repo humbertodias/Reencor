@@ -156,8 +156,8 @@ void Game::screenManager() {
             }
         }
         
-        screenSequence.pop_back();
         currentScreen->deinit();
+        screenSequence.pop_back();
         
         // Reset state
         hitstop = 0;
