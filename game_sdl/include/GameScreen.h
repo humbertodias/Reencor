@@ -2,8 +2,10 @@
 #define GAMESCREEN_H
 
 #include <string>
+#include <memory>
 
 class Game;
+class ComboTrial;
 
 class GameScreen {
 public:
@@ -40,6 +42,7 @@ public:
 
 private:
     void loadObjects();
+    std::unique_ptr<ComboTrial> comboTrial;
 };
 
 #endif // GAMESCREEN_H
