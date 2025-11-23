@@ -264,10 +264,10 @@ void BaseActiveObject::loadBoxesFromJSON() {
                 float h = boxArray[3].get<float>() * COLLISION_BOX_SCALE;
                 
                 // Convert Y from sprite-top-relative to ground-relative
-                // Assuming sprite height is ~400 pixels (100 after scaling)
-                // Y=0 in JSON is top of sprite, which is ~100 units above ground
-                // So: game_y = 100 - jsonY - h (to get bottom of box from ground)
-                float y = 100.0f - jsonY - h;
+                // JSON Y is distance from top of sprite downward
+                // We need Y as distance from ground upward
+                // Negative Y in JSON space (-jsonY) converts to upward from ground
+                float y = -jsonY;
                 
                 defaultBoxes.hurtbox.emplace_back(x, y, w, h);
             }
@@ -283,7 +283,7 @@ void BaseActiveObject::loadBoxesFromJSON() {
                 float jsonY = boxArray[1].get<float>() * COLLISION_BOX_SCALE;
                 float w = boxArray[2].get<float>() * COLLISION_BOX_SCALE;
                 float h = boxArray[3].get<float>() * COLLISION_BOX_SCALE;
-                float y = 100.0f - jsonY - h;
+                float y = -jsonY;
                 defaultBoxes.hitbox.emplace_back(x, y, w, h);
             }
         }
@@ -298,7 +298,7 @@ void BaseActiveObject::loadBoxesFromJSON() {
                 float jsonY = boxArray[1].get<float>() * COLLISION_BOX_SCALE;
                 float w = boxArray[2].get<float>() * COLLISION_BOX_SCALE;
                 float h = boxArray[3].get<float>() * COLLISION_BOX_SCALE;
-                float y = 100.0f - jsonY - h;
+                float y = -jsonY;
                 defaultBoxes.pushbox.emplace_back(x, y, w, h);
             }
         }
