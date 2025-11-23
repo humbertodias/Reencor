@@ -57,11 +57,12 @@ void HUD::GaugeBar::draw(float screenCenterX, float screenCenterY) {
     // Calculate positions based on player team (left or right side of screen)
     // Team 1: xOffset = 1.0 (keeps negative coords negative, places bar on left)
     // Team 2: xOffset = -1.0 (flips negative coords positive, places bar on right)
+    // X coordinates are relative to screen center, Y coordinates are absolute
     float xOffset = playerTeam == 1 ? 1.0f : -1.0f;
     float startX = screenCenterX + config.startPos[0] * xOffset;
-    float startY = config.startPos[1];  // Use Y directly, not relative to center
+    float startY = config.startPos[1];  // Use Y directly (absolute screen coordinates)
     float endX = screenCenterX + config.endPos[0] * xOffset;
-    float endY = config.endPos[1];  // Use Y directly, not relative to center
+    float endY = config.endPos[1];  // Use Y directly (absolute screen coordinates)
     
     // Calculate current bar end position based on gauge value
     float fillRatio = gaugeValue / maxValue;
@@ -172,17 +173,16 @@ void HUD::update() {
 void HUD::draw() {
     if (!game || !game->screen) return;
     
-    // Get screen center for positioning - use actual resolution, not internal resolution
+    // Get screen center X for horizontal positioning (Y coordinates are absolute)
     float screenCenterX = game->resolution.first / 2.0f;
-    float screenCenterY = game->resolution.second / 2.0f;
     
     // Draw all health bars
     for (auto& bar : healthBars) {
-        bar->draw(screenCenterX, screenCenterY);
+        bar->draw(screenCenterX, 0.0f);  // Pass 0 for Y since it's not used
     }
     
     // Draw all super bars
     for (auto& bar : superBars) {
-        bar->draw(screenCenterX, screenCenterY);
+        bar->draw(screenCenterX, 0.0f);  // Pass 0 for Y since it's not used
     }
 }
