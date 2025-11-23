@@ -1,14 +1,15 @@
 cmake_minimum_required(VERSION 3.15)
-project(Reencor VERSION 0.3.2 LANGUAGES CXX)
+project(reencor VERSION 0.3.2 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find required packages
-find_package(SDL2 REQUIRED)
-find_package(SDL2_image REQUIRED)
-find_package(SDL2_mixer REQUIRED)
-find_package(OpenGL REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SDL2 REQUIRED sdl2)
+pkg_check_modules(SDL2_IMAGE REQUIRED SDL2_image)
+pkg_check_modules(SDL2_MIXER REQUIRED SDL2_mixer)
+pkg_check_modules(SDL2_GFX REQUIRED SDL2_gfx)
 
 # Include directories
 include_directories(
@@ -18,6 +19,18 @@ include_directories(
     ${OPENGL_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+# Print include directories
+message(STATUS "SDL2 include dirs: ${SDL2_INCLUDE_DIRS}")
+message(STATUS "SDL2_image include dirs: ${SDL2_IMAGE_INCLUDE_DIRS}")
+message(STATUS "SDL2_mixer include dirs: ${SDL2_MIXER_INCLUDE_DIRS}")
+message(STATUS "OpenGL include dirs: ${OPENGL_INCLUDE_DIRS}")
+
+# Print libraries
+message(STATUS "SDL2 libraries: ${SDL2_LIBRARIES}")
+message(STATUS "SDL2_image libraries: ${SDL2_IMAGE_LIBRARIES}")
+message(STATUS "SDL2_mixer libraries: ${SDL2_MIXER_LIBRARIES}")
+message(STATUS "OpenGL libraries: ${OPENGL_LIBRARIES}")
 
 # Source files
 set(SOURCES
@@ -37,13 +50,16 @@ set(SOURCES
 # Create executable
 add_executable(reencor ${SOURCES})
 
-# Link libraries
 target_link_libraries(reencor
-    ${SDL2_LIBRARIES}
-    ${SDL2_IMAGE_LIBRARIES}
-    ${SDL2_MIXER_LIBRARIES}
-    ${OPENGL_LIBRARIES}
-    m
+        -L${SDL2_LIBRARY_DIRS}
+        -L${SDL2_IMAGE_LIBRARY_DIRS}
+        -L${SDL2_GFX_LIBRARY_DIRS}
+        -lSDL2
+        -lSDL2_image
+        -lSDL2_mixer
+        -lSDL2_gfx
+        -lGL
+        m
 )
 
 # Copy assets to build directory

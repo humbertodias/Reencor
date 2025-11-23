@@ -8,6 +8,9 @@
 #include <SDL2/SDL_mixer.h>
 #include <iostream>
 
+#include "BaseActiveObject.h"
+#include "GameObject.h"
+
 Game::Game() 
     : type("game"),
       resolution(640, 400),
@@ -41,10 +44,10 @@ bool Game::initialize() {
     }
 
     // Set OpenGL attributes
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    // SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    // SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    // SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    // SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
     // Create window
     window = SDL_CreateWindow("REENCOR",

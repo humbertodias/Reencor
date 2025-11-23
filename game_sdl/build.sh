@@ -39,7 +39,7 @@ cd build
 
 # Run CMake
 echo "Running CMake..."
-if ! cmake ..; then
+if ! cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Debug; then
     echo -e "${RED}CMake configuration failed${NC}"
     exit 1
 fi
