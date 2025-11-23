@@ -8,6 +8,31 @@
 
 namespace fs = std::filesystem;
 
+// Forward declare the error checking function
+static void checkGLError(const std::string& location) {
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR) {
+        std::cerr << "OpenGL Error at " << location << ": ";
+        switch (err) {
+            case GL_INVALID_ENUM:
+                std::cerr << "GL_INVALID_ENUM";
+                break;
+            case GL_INVALID_VALUE:
+                std::cerr << "GL_INVALID_VALUE";
+                break;
+            case GL_INVALID_OPERATION:
+                std::cerr << "GL_INVALID_OPERATION";
+                break;
+            case GL_OUT_OF_MEMORY:
+                std::cerr << "GL_OUT_OF_MEMORY";
+                break;
+            default:
+                std::cerr << "Unknown error code: " << err;
+        }
+        std::cerr << std::endl;
+    }
+}
+
 void AssetLoader::loadAssets(const std::string& assetsPath,
                              std::unordered_map<std::string, GLuint>& imageDict,
                              std::unordered_map<std::string, Mix_Chunk*>& soundDict,
@@ -66,19 +91,40 @@ GLuint AssetLoader::loadImage(const std::string& path) {
         return 0;
     }
 
+    std::cout << "Loading image: " << path << " (format: " << SDL_GetPixelFormatName(surface->format->format) 
+              << ", size: " << surface->w << "x" << surface->h << ")" << std::endl;
+
+    // Convert surface to a consistent format (RGBA32)
+    SDL_Surface* formattedSurface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
+    SDL_FreeSurface(surface);
+    
+    if (!formattedSurface) {
+        std::cerr << "Failed to convert surface format for " << path << ": " << SDL_GetError() << std::endl;
+        return 0;
+    }
+
     GLuint texture;
     glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    GLenum format = (surface->format->BytesPerPixel == 4) ? GL_RGBA : GL_RGB;
+    checkGLError("glGenTextures");
     
-    glTexImage2D(GL_TEXTURE_2D, 0, format, surface->w, surface->h, 0,
-                 format, GL_UNSIGNED_BYTE, surface->pixels);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    checkGLError("glBindTexture");
+    
+    // Always use RGBA since we converted to RGBA32
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, formattedSurface->w, formattedSurface->h, 0,
+                 GL_RGBA, GL_UNSIGNED_BYTE, formattedSurface->pixels);
+    checkGLError("glTexImage2D");
     
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    checkGLError("glTexParameteri");
 
-    SDL_FreeSurface(surface);
+    SDL_FreeSurface(formattedSurface);
+    
+    std::cout << "Successfully loaded texture from " << path << " (ID: " << texture << ")" << std::endl;
+    
     return texture;
 }
 
