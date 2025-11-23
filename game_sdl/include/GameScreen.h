@@ -2,8 +2,11 @@
 #define GAMESCREEN_H
 
 #include <string>
+#include <memory>
+#include "ComboTrial.h"
 
 class Game;
+class ComboTrial;
 
 class GameScreen {
 public:
@@ -40,6 +43,8 @@ public:
 
 private:
     void loadObjects();
+    std::unique_ptr<ComboTrial> comboTrial;
+    int completionTimer;  // Timer for waiting between trial completions
 };
 
 #endif // GAMESCREEN_H

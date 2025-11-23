@@ -15,6 +15,7 @@ class Screen;
 class InputDevice;
 class GameScreen;
 class BaseActiveObject;
+class HUD;
 
 class Game {
 public:
@@ -75,6 +76,7 @@ public:
     // Core systems
     std::shared_ptr<Camera> camera;
     std::shared_ptr<Screen> screen;
+    std::shared_ptr<HUD> hud;
 
 private:
     SDL_Window* window;

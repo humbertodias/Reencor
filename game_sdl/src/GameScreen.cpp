@@ -1,7 +1,10 @@
 #include "GameScreen.h"
 #include "Game.h"
 #include "BaseActiveObject.h"
+#include "ComboTrial.h"
 #include <iostream>
+
+#include "HUD.h"
 
 // Base GameScreen
 GameScreen::GameScreen(Game* game) : game(game) {}
@@ -29,8 +32,23 @@ void ModeSelectionScreen::deinit() {
 }
 
 // ComboTrialScreen
-ComboTrialScreen::ComboTrialScreen(Game* game) : GameScreen(game) {
+ComboTrialScreen::ComboTrialScreen(Game* game) 
+    : GameScreen(game), completionTimer(0) {
     loadObjects();
+    
+    // Initialize HUD after players are loaded
+    if (game->hud) {
+        game->hud->initialize();
+    }
+    
+    // Initialize combo trial system
+    // Use first selected character for trials (SF3/Ryu format)
+    if (!game->selectedCharacters.empty()) {
+        comboTrial = std::make_unique<ComboTrial>(game, game->selectedCharacters[0], 0);
+        if (comboTrial) {
+            comboTrial->reset();  // Set up initial positions
+        }
+    }
 }
 
 void ComboTrialScreen::loadObjects() {
@@ -61,7 +79,7 @@ void ComboTrialScreen::loadObjects() {
         auto player = std::make_shared<BaseActiveObject>(
             game,
             playerDict,
-            std::vector<float>{i == 0 ? -300.0f : 300.0f, 0.0f, 0.0f},  // Y=0 for ground level
+            std::vector<float>{i == 0 ? -300.0f : 300.0f, 0.0f, 0.0f},  // Y=0 in world coordinates
             i == 0 ? 1 : -1,
             inputDev,
             i + 1
@@ -76,10 +94,37 @@ void ComboTrialScreen::loadObjects() {
 
 void ComboTrialScreen::loop() {
     game->gameplay();
+    
+    // Update combo trial system
+    if (comboTrial) {
+        comboTrial->update();
+        
+        // Check for trial completion and load next
+        if (comboTrial->isCompleted()) {
+            // Wait a bit before loading next trial
+            completionTimer++;
+            if (completionTimer > 120) {  // 2 seconds at 60fps
+                if (!comboTrial->loadNextTrial()) {
+                    std::cout << "All trials completed!" << std::endl;
+                }
+                completionTimer = 0;
+            }
+        } else {
+            completionTimer = 0;  // Reset timer if trial not completed
+        }
+    }
+    
     game->display();
+    
+    // Draw combo trial UI on top
+    if (comboTrial) {
+        comboTrial->draw();
+    }
 }
 
 void ComboTrialScreen::deinit() {
     // Cleanup
+    comboTrial.reset();
     game->objectList.clear();
+    game->activePlayers.clear();
 }
