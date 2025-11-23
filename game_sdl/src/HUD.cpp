@@ -55,7 +55,8 @@ void HUD::GaugeBar::draw(float screenCenterX, float screenCenterY) {
     float maxValue = 1.0f;
     
     // Calculate positions based on player team (left or right side of screen)
-    // Team 1 on left (xOffset = 1), Team 2 on right (xOffset = -1 to flip coordinates)
+    // Team 1: xOffset = 1.0 (keeps negative coords negative, places bar on left)
+    // Team 2: xOffset = -1.0 (flips negative coords positive, places bar on right)
     float xOffset = playerTeam == 1 ? 1.0f : -1.0f;
     float startX = screenCenterX + config.startPos[0] * xOffset;
     float startY = screenCenterY + config.startPos[1];
