@@ -58,11 +58,21 @@ void BaseActiveObject::draw(void* screen, const std::vector<float>& cameraPos) {
     // Simple placeholder rendering - draw a colored rectangle for each player
     // TODO: Implement proper sprite rendering based on state and animation frame
     
-    if (pos.size() < 2) return;
+    if (pos.size() < 2) {
+        std::cerr << "Warning: pos vector too small in BaseActiveObject::draw()" << std::endl;
+        return;
+    }
     
     // Calculate screen position (adjust for camera)
     float screenX = pos[0] - (cameraPos.size() > 0 ? cameraPos[0] : 0) + 320; // Center on screen (640/2)
     float screenY = pos[1] - (cameraPos.size() > 1 ? cameraPos[1] : 0) + 200; // Center on screen (400/2)
+    
+    // Debug output once per second (60 frames)
+    static int debugCounter = 0;
+    if (++debugCounter % 60 == 0) {
+        std::cout << "Drawing player " << team << " at world(" << pos[0] << "," << pos[1] 
+                  << ") -> screen(" << screenX << "," << screenY << ")" << std::endl;
+    }
     
     // Draw a simple colored box to represent the player
     glDisable(GL_TEXTURE_2D);

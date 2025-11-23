@@ -184,7 +184,13 @@ void Game::screenManager() {
                 camera->update(cameraFocusPoint);
             }
             
-            // Run current screen loop
+            // Clear screen before rendering
+            if (screen) {
+                screen->clear();
+                glLoadIdentity();
+            }
+            
+            // Run current screen loop (this draws everything)
             try {
                 currentScreen->loop();
             }
@@ -194,10 +200,7 @@ void Game::screenManager() {
                 break;
             }
             
-            // Display
-            if (screen) {
-                screen->display();
-            }
+            // Swap buffers to display
             SDL_GL_SwapWindow(window);
             
             // Handle events
@@ -280,6 +283,13 @@ void Game::gameplay() {
 }
 
 void Game::display() {
+    // Debug output
+    static int displayCallCount = 0;
+    if (++displayCallCount % 60 == 0) {
+        std::cout << "Game::display() called " << displayCallCount << " times, drawing " 
+                  << objectList.size() << " objects" << std::endl;
+    }
+    
     // Draw a ground line for reference
     glDisable(GL_TEXTURE_2D);
     glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
