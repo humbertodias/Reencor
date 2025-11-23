@@ -60,9 +60,11 @@ void CollisionSystem::drawBoxes(Game* game, std::shared_ptr<BaseActiveObject> ob
     glColor4f(0.0f, 1.0f, 0.0f, 0.8f);
     for (const auto& box : boxes.hurtbox) {
         // Adjust for character position and facing
+        // Box Y is already inverted (negative values go up from ground)
         float adjustedX = charX + (face > 0 ? box.x : -box.x - box.width);
+        float adjustedY = charY + box.y - box.height;  // Subtract height since box.y is bottom
         float boxScreenX = adjustedX + screenOffsetX;
-        float boxScreenY = charY + box.y + screenOffsetY;
+        float boxScreenY = adjustedY + screenOffsetY;
         
         glBegin(GL_LINE_LOOP);
             glVertex2f(boxScreenX, boxScreenY);
@@ -77,8 +79,9 @@ void CollisionSystem::drawBoxes(Game* game, std::shared_ptr<BaseActiveObject> ob
     for (const auto& box : boxes.hitbox) {
         // Adjust for character position and facing
         float adjustedX = charX + (face > 0 ? box.x : -box.x - box.width);
+        float adjustedY = charY + box.y - box.height;
         float boxScreenX = adjustedX + screenOffsetX;
-        float boxScreenY = charY + box.y + screenOffsetY;
+        float boxScreenY = adjustedY + screenOffsetY;
         
         glBegin(GL_LINE_LOOP);
             glVertex2f(boxScreenX, boxScreenY);
@@ -93,8 +96,9 @@ void CollisionSystem::drawBoxes(Game* game, std::shared_ptr<BaseActiveObject> ob
     for (const auto& box : boxes.pushbox) {
         // Adjust for character position and facing
         float adjustedX = charX + (face > 0 ? box.x : -box.x - box.width);
+        float adjustedY = charY + box.y - box.height;
         float boxScreenX = adjustedX + screenOffsetX;
-        float boxScreenY = charY + box.y + screenOffsetY;
+        float boxScreenY = adjustedY + screenOffsetY;
         
         glBegin(GL_LINE_LOOP);
             glVertex2f(boxScreenX, boxScreenY);

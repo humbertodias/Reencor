@@ -250,12 +250,15 @@ void BaseActiveObject::loadBoxesFromJSON() {
     if (boxesData.contains("hurtbox") && boxesData["hurtbox"].contains("boxes")) {
         for (const auto& boxArray : boxesData["hurtbox"]["boxes"]) {
             if (boxArray.is_array() && boxArray.size() >= 4) {
-                defaultBoxes.hurtbox.emplace_back(
-                    boxArray[0].get<float>(),
-                    boxArray[1].get<float>(),
-                    boxArray[2].get<float>(),
-                    boxArray[3].get<float>()
-                );
+                // Box coordinates from JSON are in sprite space (Y increases downward from top)
+                // We need to convert to our coordinate system (Y increases upward from ground at 0)
+                // Also scale down the boxes (they're designed for larger sprites)
+                float scale = 0.25f; // Scale factor to match our screen resolution
+                float x = boxArray[0].get<float>() * scale;
+                float y = -boxArray[1].get<float>() * scale; // Invert Y (JSON Y=0 is top, our Y=0 is ground)
+                float w = boxArray[2].get<float>() * scale;
+                float h = boxArray[3].get<float>() * scale;
+                defaultBoxes.hurtbox.emplace_back(x, y, w, h);
             }
         }
         std::cout << "Loaded " << defaultBoxes.hurtbox.size() << " hurtboxes" << std::endl;
@@ -265,12 +268,12 @@ void BaseActiveObject::loadBoxesFromJSON() {
     if (boxesData.contains("hitbox") && boxesData["hitbox"].contains("boxes")) {
         for (const auto& boxArray : boxesData["hitbox"]["boxes"]) {
             if (boxArray.is_array() && boxArray.size() >= 4) {
-                defaultBoxes.hitbox.emplace_back(
-                    boxArray[0].get<float>(),
-                    boxArray[1].get<float>(),
-                    boxArray[2].get<float>(),
-                    boxArray[3].get<float>()
-                );
+                float scale = 0.25f;
+                float x = boxArray[0].get<float>() * scale;
+                float y = -boxArray[1].get<float>() * scale;
+                float w = boxArray[2].get<float>() * scale;
+                float h = boxArray[3].get<float>() * scale;
+                defaultBoxes.hitbox.emplace_back(x, y, w, h);
             }
         }
         std::cout << "Loaded " << defaultBoxes.hitbox.size() << " hitboxes" << std::endl;
@@ -280,12 +283,12 @@ void BaseActiveObject::loadBoxesFromJSON() {
     if (boxesData.contains("grabbox") && boxesData["grabbox"].contains("boxes")) {
         for (const auto& boxArray : boxesData["grabbox"]["boxes"]) {
             if (boxArray.is_array() && boxArray.size() >= 4) {
-                defaultBoxes.pushbox.emplace_back(
-                    boxArray[0].get<float>(),
-                    boxArray[1].get<float>(),
-                    boxArray[2].get<float>(),
-                    boxArray[3].get<float>()
-                );
+                float scale = 0.25f;
+                float x = boxArray[0].get<float>() * scale;
+                float y = -boxArray[1].get<float>() * scale;
+                float w = boxArray[2].get<float>() * scale;
+                float h = boxArray[3].get<float>() * scale;
+                defaultBoxes.pushbox.emplace_back(x, y, w, h);
             }
         }
         std::cout << "Loaded " << defaultBoxes.pushbox.size() << " pushboxes" << std::endl;
@@ -405,8 +408,11 @@ CollisionBox BaseActiveObject::getHurtbox() const {
     if (!currentBoxes.hurtbox.empty()) {
         auto& box = currentBoxes.hurtbox[0];
         // Adjust for character position and facing
+        // Box Y is already inverted (negative values go up from ground)
+        // Box coordinates are relative to character position
         float adjustedX = pos[0] + (face > 0 ? box.x : -box.x - box.width);
-        return CollisionBox(adjustedX, pos[1] + box.y, box.width, box.height);
+        float adjustedY = pos[1] + box.y - box.height; // Subtract height since box.y is bottom of box
+        return CollisionBox(adjustedX, adjustedY, box.width, box.height);
     }
     // Fallback to default hurtbox
     return CollisionBox(pos[0] - 30.0f, pos[1] - 100.0f, 60.0f, 100.0f);
@@ -418,7 +424,8 @@ CollisionBox BaseActiveObject::getHitbox() const {
         auto& box = currentBoxes.hitbox[0];
         // Adjust for character position and facing
         float adjustedX = pos[0] + (face > 0 ? box.x : -box.x - box.width);
-        return CollisionBox(adjustedX, pos[1] + box.y, box.width, box.height);
+        float adjustedY = pos[1] + box.y - box.height;
+        return CollisionBox(adjustedX, adjustedY, box.width, box.height);
     }
     // Fallback: hitbox in front of character
     float hitboxX = (face > 0) ? pos[0] : pos[0] - 50.0f;
@@ -431,7 +438,8 @@ CollisionBox BaseActiveObject::getPushbox() const {
         auto& box = currentBoxes.pushbox[0];
         // Adjust for character position and facing
         float adjustedX = pos[0] + (face > 0 ? box.x : -box.x - box.width);
-        return CollisionBox(adjustedX, pos[1] + box.y, box.width, box.height);
+        float adjustedY = pos[1] + box.y - box.height;
+        return CollisionBox(adjustedX, adjustedY, box.width, box.height);
     }
     // Fallback to default pushbox
     return CollisionBox(pos[0] - 25.0f, pos[1] - 90.0f, 50.0f, 90.0f);
