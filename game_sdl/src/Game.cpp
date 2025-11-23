@@ -302,8 +302,8 @@ void Game::display() {
     glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
     glLineWidth(2.0f);
     glBegin(GL_LINES);
-        glVertex2f(0, 200);  // Ground at y=200 (center of 400px height screen)
-        glVertex2f(640, 200);
+        glVertex2f(0, 320);  // Ground at y=320 (lower third of 400px height screen)
+        glVertex2f(640, 320);
     glEnd();
     glEnable(GL_TEXTURE_2D);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
