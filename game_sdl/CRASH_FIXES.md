@@ -30,7 +30,57 @@ IMG_Quit();
 #include <SDL2/SDL_image.h>
 ```
 
-### 3. OpenGL Context Attributes Commented Out
+### 3. glTexImage2D Crash in Asset Loading (CRITICAL)
+**Problem**: `glTexImage2D()` was crashing when loading images because SDL surfaces have various pixel formats (indexed colors, RGB888, BGR888, ARGB8888, etc.), but the code was trying to guess the OpenGL format based only on bytes per pixel. This caused format mismatches and crashes.
+
+**Root Cause**: 
+- SDL_image loads images in their native format
+- Different image files can have different pixel formats
+- OpenGL expects specific byte ordering (RGBA)
+- Simple BytesPerPixel check (4 = RGBA, 3 = RGB) doesn't account for:
+  - Indexed color formats (palette-based)
+  - Different RGB orderings (BGR vs RGB)
+  - Packed pixel formats
+
+**Fix**: Convert all surfaces to a consistent RGBA32 format before OpenGL upload:
+```cpp
+GLuint AssetLoader::loadImage(const std::string& path) {
+    SDL_Surface* surface = IMG_Load(path.c_str());
+    if (!surface) {
+        std::cerr << "Failed to load image " << path << ": " << IMG_GetError() << std::endl;
+        return 0;
+    }
+
+    // Log original format for debugging
+    std::cout << "Loading image: " << path 
+              << " (format: " << SDL_GetPixelFormatName(surface->format->format) 
+              << ", size: " << surface->w << "x" << surface->h << ")" << std::endl;
+
+    // Convert to consistent RGBA32 format
+    SDL_Surface* formattedSurface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
+    SDL_FreeSurface(surface);
+    
+    if (!formattedSurface) {
+        std::cerr << "Failed to convert surface format: " << SDL_GetError() << std::endl;
+        return 0;
+    }
+
+    // Now always use GL_RGBA
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, formattedSurface->w, formattedSurface->h, 0,
+                 GL_RGBA, GL_UNSIGNED_BYTE, formattedSurface->pixels);
+    
+    SDL_FreeSurface(formattedSurface);
+    return texture;
+}
+```
+
+**Additional Improvements**:
+- Added `checkGLError()` helper function for detailed OpenGL error reporting
+- Added texture wrap mode parameters (CLAMP_TO_EDGE) to prevent texture artifacts
+- Added comprehensive logging showing pixel format and texture ID for each image
+- Applied same fix to both `AssetLoader::loadImage()` and `Renderer::loadImagePath()`
+
+### 4. OpenGL Context Attributes Commented Out
 **Problem**: OpenGL context attributes were commented out, potentially causing GL errors.
 
 **Fix**: Re-enabled all OpenGL attributes:
@@ -41,7 +91,7 @@ SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 ```
 
-### 4. Division by Zero in Camera Calculation
+### 5. Division by Zero in Camera Calculation
 **Problem**: `calculateCameraFocusPoint()` could divide by zero if all players were invalid.
 
 **Fix**: Count only valid players and check before division:
@@ -63,7 +113,7 @@ if (validPlayers > 0) {
 }
 ```
 
-### 5. Player Creation Logic
+### 6. Player Creation Logic
 **Problem**: Players were only created if JSON object definitions existed, causing empty game.
 
 **Fix**: Modified `ComboTrialScreen::loadObjects()` to always create players:
@@ -77,7 +127,7 @@ for (size_t i = 0; i < game->selectedCharacters.size() && i < 2; i++) {
 }
 ```
 
-### 6. Null Pointer Safety
+### 7. Null Pointer Safety
 **Problem**: Various null pointer dereferences throughout game loop.
 
 **Fix**: Added null checks before dereferencing:
@@ -86,7 +136,7 @@ for (size_t i = 0; i < game->selectedCharacters.size() && i < 2; i++) {
 - Input devices: `if (dev) { dev->update(); }`
 - Current screen: `if (!currentScreen) { break; }`
 
-### 7. Exception Handling
+### 8. Exception Handling
 **Problem**: No exception handling in screen loop.
 
 **Fix**: Added try-catch block:
