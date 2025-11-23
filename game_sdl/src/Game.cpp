@@ -308,6 +308,14 @@ void Game::display() {
 }
 
 void Game::calculateCameraFocusPoint() {
+    // For now, keep camera fixed at origin until we implement stage limits
+    // This prevents the camera from moving and objects disappearing off screen
+    
+    // In the Python version, camera limits from the stage prevent this issue
+    // Without stage data, we just keep the camera centered
+    cameraFocusPoint = {0.0f, 0.0f, 400.0f};
+    
+    /* TODO: Implement proper camera focus with stage limits
     if (activePlayers.empty()) {
         return;
     }
@@ -330,8 +338,13 @@ void Game::calculateCameraFocusPoint() {
         pos[1] = (sumY / validPlayers) + resolution.second * 0.6f;
         pos[2] = 400.0f;
         
+        // TODO: Apply camera limits from stage data
+        // camera_limits = activeStages[0].dict["camera_focus_point_limit"]
+        // Clamp pos to camera_limits
+        
         cameraFocusPoint = pos;
     }
+    */
 }
 
 void Game::nextScreen(const std::vector<std::string>& newScreenSequence) {

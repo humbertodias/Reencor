@@ -51,7 +51,7 @@ void ComboTrialScreen::loadObjects() {
         auto player = std::make_shared<BaseActiveObject>(
             game,
             std::unordered_map<std::string, void*>(), // Empty dict for now
-            std::vector<float>{i == 0 ? -300.0f : 300.0f, -1.0f, 0.0f},
+            std::vector<float>{i == 0 ? -300.0f : 300.0f, 0.0f, 0.0f},  // Y=0 for ground level
             i == 0 ? 1 : -1,
             inputDev,
             i + 1
