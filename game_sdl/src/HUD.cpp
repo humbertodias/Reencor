@@ -104,8 +104,9 @@ HUD::GaugeConfig HUD::createHealthBarConfig() {
     GaugeConfig config;
     // Health bar configuration - adjusted for 2D orthographic projection
     // Positions near top of screen (Y=30) for health bars
-    config.startPos = {-70.0f, 30.0f};
-    config.endPos = {-550.0f, 30.0f};
+    // X values scaled by 0.5 for 640px width (original designed for 1280px)
+    config.startPos = {-35.0f, 30.0f};   // -70 * 0.5
+    config.endPos = {-275.0f, 30.0f};    // -550 * 0.5
     config.thickness = 10.0f;
     config.startColor = Color(1.0f, 1.0f, 0.078f, 1.0f);  // Yellow when low
     config.endColor = Color(0.078f, 1.0f, 0.078f, 1.0f);  // Green when full
@@ -118,8 +119,9 @@ HUD::GaugeConfig HUD::createSuperBarConfig() {
     GaugeConfig config;
     // Super bar configuration - adjusted for 2D orthographic projection
     // Positions near bottom of screen (Y=370) for super meters
-    config.startPos = {-80.0f, 370.0f};
-    config.endPos = {-520.0f, 370.0f};
+    // X values scaled by 0.5 for 640px width (original designed for 1280px)
+    config.startPos = {-40.0f, 370.0f};  // -80 * 0.5
+    config.endPos = {-260.0f, 370.0f};   // -520 * 0.5
     config.thickness = 12.0f;
     config.startColor = Color(0.314f, 0.314f, 1.0f, 1.0f);  // Dark blue
     config.endColor = Color(0.494f, 0.494f, 1.0f, 1.0f);   // Light blue
