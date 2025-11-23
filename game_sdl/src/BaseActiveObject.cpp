@@ -157,7 +157,7 @@ void BaseActiveObject::draw(void* screen, const std::vector<float>& cameraPos) {
     
     // Calculate screen position (adjust for camera)
     float screenX = pos[0] - (cameraPos.size() > 0 ? cameraPos[0] : 0) + 320; // Center on screen (640/2)
-    float screenY = pos[1] - (cameraPos.size() > 1 ? cameraPos[1] : 0) + 200; // Center on screen (400/2)
+    float screenY = pos[1] - (cameraPos.size() > 1 ? cameraPos[1] : 0) + 320; // Ground level at Y=320
     
     // Debug: Print state information once per second
     static int debugFrameCounter = 0;
