@@ -13,6 +13,7 @@ class InputDevice;
 struct FrameData {
     int dur = 1;  // Duration in frames
     std::string image;  // Image key (e.g., "02_Ryu/02593")
+    std::vector<float> pos_offset = {0.0f, 0.0f};  // Position offset for the frame
 };
 
 // Simple structure to hold state data
