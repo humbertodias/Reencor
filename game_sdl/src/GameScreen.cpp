@@ -66,7 +66,7 @@ void ComboTrialScreen::loadObjects() {
         auto player = std::make_shared<BaseActiveObject>(
             game,
             playerDict,
-            std::vector<float>{i == 0 ? -300.0f : 300.0f, 0.0f, 0.0f},  // Y=0 for ground level
+            std::vector<float>{i == 0 ? -300.0f : 300.0f, 320.0f, 0.0f},  // Y=320 to match ground level
             i == 0 ? 1 : -1,
             inputDev,
             i + 1
