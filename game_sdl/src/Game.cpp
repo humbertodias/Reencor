@@ -280,6 +280,18 @@ void Game::gameplay() {
 }
 
 void Game::display() {
+    // Draw a ground line for reference
+    glDisable(GL_TEXTURE_2D);
+    glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
+    glLineWidth(2.0f);
+    glBegin(GL_LINES);
+        glVertex2f(0, 200);  // Ground at y=200 (center of 400px height screen)
+        glVertex2f(640, 200);
+    glEnd();
+    glEnable(GL_TEXTURE_2D);
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    
+    // Draw all game objects
     for (auto& object : objectList) {
         object->draw(screen.get(), camera->pos);
     }
