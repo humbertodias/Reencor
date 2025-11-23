@@ -71,7 +71,7 @@ void HUD::GaugeBar::draw(float screenCenterX, float screenCenterY) {
         }
     }
     
-    float currentEndX = startX - (startX - endX) * fillRatio * xOffset;
+    float currentEndX = startX + (endX - startX) * fillRatio;
     float currentEndY = startY;
     
     // Interpolate color based on fill ratio
@@ -104,8 +104,8 @@ HUD::GaugeConfig HUD::createHealthBarConfig() {
     config.startPos = {-70.0f, 370.0f};
     config.endPos = {-550.0f, 370.0f};
     config.thickness = 10.0f;
-    config.startColor = Color(255.0f/255.0f, 255.0f/255.0f, 20.0f/255.0f, 1.0f);  // Yellow when low
-    config.endColor = Color(20.0f/255.0f, 255.0f/255.0f, 20.0f/255.0f, 1.0f);    // Green when full
+    config.startColor = Color(1.0f, 1.0f, 0.078f, 1.0f);  // Yellow when low
+    config.endColor = Color(0.078f, 1.0f, 0.078f, 1.0f);  // Green when full
     config.level = 1;
     config.showLevelIndicator = false;
     return config;
@@ -117,10 +117,11 @@ HUD::GaugeConfig HUD::createSuperBarConfig() {
     config.startPos = {-80.0f, -370.0f};
     config.endPos = {-520.0f, -370.0f};
     config.thickness = 12.0f;
-    config.startColor = Color(80.0f/255.0f, 80.0f/255.0f, 255.0f/255.0f, 1.0f);   // Dark blue
-    config.endColor = Color(126.0f/255.0f, 126.0f/255.0f, 255.0f/255.0f, 1.0f);  // Light blue
+    config.startColor = Color(0.314f, 0.314f, 1.0f, 1.0f);  // Dark blue
+    config.endColor = Color(0.494f, 0.494f, 1.0f, 1.0f);   // Light blue
     config.level = 3;
     config.showLevelIndicator = true;
+    // TODO: levelIndicatorPos will be used when text rendering is implemented
     config.levelIndicatorPos = {-590.0f, -390.0f};
     return config;
 }
