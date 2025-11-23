@@ -4,6 +4,8 @@
 #include "ComboTrial.h"
 #include <iostream>
 
+#include "HUD.h"
+
 // Base GameScreen
 GameScreen::GameScreen(Game* game) : game(game) {}
 

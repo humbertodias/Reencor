@@ -4,6 +4,8 @@
 #include <GL/gl.h>
 #include <algorithm>
 
+#include "Camera.h"
+
 void CollisionSystem::calculateBoxCollisions(Game* game) {
     // Calculate collisions between all active players
     for (size_t i = 0; i < game->activePlayers.size(); i++) {

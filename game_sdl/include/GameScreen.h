@@ -3,6 +3,7 @@
 
 #include <string>
 #include <memory>
+#include "ComboTrial.h"
 
 class Game;
 class ComboTrial;
