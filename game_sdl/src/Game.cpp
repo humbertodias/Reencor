@@ -37,17 +37,29 @@ Game::~Game() {
 }
 
 bool Game::initialize() {
+    std::cout << "Initializing game..." << std::endl;
+    
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) < 0) {
         std::cerr << "SDL initialization failed: " << SDL_GetError() << std::endl;
         return false;
     }
+    std::cout << "SDL initialized successfully" << std::endl;
+
+    // Initialize SDL_image
+    int imgFlags = IMG_INIT_PNG | IMG_INIT_JPG;
+    if (!(IMG_Init(imgFlags) & imgFlags)) {
+        std::cerr << "SDL_image initialization failed: " << IMG_GetError() << std::endl;
+        // Don't fail - just warn
+    } else {
+        std::cout << "SDL_image initialized successfully" << std::endl;
+    }
 
     // Set OpenGL attributes
-    // SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    // SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-    // SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    // SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
     // Create window
     window = SDL_CreateWindow("REENCOR",
@@ -61,6 +73,7 @@ bool Game::initialize() {
         std::cerr << "Window creation failed: " << SDL_GetError() << std::endl;
         return false;
     }
+    std::cout << "Window created: " << resolution.first << "x" << resolution.second << std::endl;
 
     // Create OpenGL context
     glContext = SDL_GL_CreateContext(window);
@@ -68,23 +81,28 @@ bool Game::initialize() {
         std::cerr << "OpenGL context creation failed: " << SDL_GetError() << std::endl;
         return false;
     }
+    std::cout << "OpenGL context created" << std::endl;
 
     // Initialize OpenGL
     Renderer::initOpenGL(resolution.first, resolution.second);
+    std::cout << "OpenGL initialized" << std::endl;
 
     // Initialize audio
     initAudio();
 
     // Initialize input devices
     inputDeviceAvailable();
+    std::cout << "Input devices: " << inputDeviceList.size() << std::endl;
 
     // Initialize camera and screen
     camera = std::make_shared<Camera>(0.1f);
     screen = std::make_shared<Screen>(internalResolution);
+    std::cout << "Camera and screen initialized" << std::endl;
 
     // Load assets
     loadAssets();
 
+    std::cout << "Game initialization complete" << std::endl;
     return true;
 }
 
@@ -118,35 +136,65 @@ void Game::inputDeviceAvailable() {
 
 void Game::run() {
     // Initialize screen sequence
-    screenSequence.push_back(std::make_shared<ComboTrialScreen>(this));
+    try {
+        screenSequence.push_back(std::make_shared<ComboTrialScreen>(this));
+        std::cout << "Screen sequence initialized with ComboTrialScreen" << std::endl;
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Failed to create ComboTrialScreen: " << e.what() << std::endl;
+        return;
+    }
     
     screenManager();
 }
 
 void Game::screenManager() {
+    std::cout << "Starting screen manager with " << screenSequence.size() << " screens" << std::endl;
+    
     while (!screenSequence.empty()) {
         active = true;
         currentScreen = screenSequence.back();
         
+        if (!currentScreen) {
+            std::cerr << "Error: currentScreen is null!" << std::endl;
+            break;
+        }
+        
+        std::cout << "Starting game loop..." << std::endl;
+        
         Uint32 lastTime = SDL_GetTicks();
         const Uint32 frameDelay = 1000 / frameRate;
+        int frameCount = 0;
         
         while (active) {
             Uint32 frameStart = SDL_GetTicks();
             
             // Update input devices
             for (auto& dev : inputDeviceList) {
-                dev->update();
+                if (dev) {
+                    dev->update();
+                }
             }
             
             // Update camera
-            camera->update(cameraFocusPoint);
+            if (camera) {
+                camera->update(cameraFocusPoint);
+            }
             
             // Run current screen loop
-            currentScreen->loop();
+            try {
+                currentScreen->loop();
+            }
+            catch (const std::exception& e) {
+                std::cerr << "Exception in screen loop: " << e.what() << std::endl;
+                active = false;
+                break;
+            }
             
             // Display
-            screen->display();
+            if (screen) {
+                screen->display();
+            }
             SDL_GL_SwapWindow(window);
             
             // Handle events
@@ -157,7 +205,16 @@ void Game::screenManager() {
             if (frameDelay > frameTime) {
                 SDL_Delay(frameDelay - frameTime);
             }
+            
+            // Print debug info every 60 frames
+            frameCount++;
+            if (frameCount % 60 == 0) {
+                std::cout << "Frame " << frameCount << " - Objects: " << objectList.size() 
+                          << ", Players: " << activePlayers.size() << std::endl;
+            }
         }
+        
+        std::cout << "Exiting game loop after " << frameCount << " frames" << std::endl;
         
         currentScreen->deinit();
         screenSequence.pop_back();
@@ -233,8 +290,10 @@ void Game::calculateCameraFocusPoint() {
     // Calculate average position of active players
     float sumX = 0.0f, sumY = 0.0f;
     for (const auto& player : activePlayers) {
-        sumX += player->pos[0];
-        sumY += player->pos[1];
+        if (player && player->pos.size() >= 2) {
+            sumX += player->pos[0];
+            sumY += player->pos[1];
+        }
     }
     
     pos[0] = sumX / activePlayers.size();
@@ -266,12 +325,17 @@ void Game::shutdown() {
         }
     }
     
+    // Clean up SDL_image
+    IMG_Quit();
+    
     // Clean up SDL
     if (glContext) {
         SDL_GL_DeleteContext(glContext);
+        glContext = nullptr;
     }
     if (window) {
         SDL_DestroyWindow(window);
+        window = nullptr;
     }
     SDL_Quit();
 }

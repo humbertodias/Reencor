@@ -36,22 +36,31 @@ void ComboTrialScreen::loadObjects() {
     // Create stage
     if (game->objectDict.find(game->selectedStage) != game->objectDict.end()) {
         // game->activeStages = std::make_shared<BaseActiveObject>(...);
+        std::cout << "Stage found: " << game->selectedStage << std::endl;
+    } else {
+        std::cout << "Stage not found: " << game->selectedStage << " (will continue without stage)" << std::endl;
     }
     
-    // Create players
+    // Create players even if object definitions don't exist (for basic testing)
     for (size_t i = 0; i < game->selectedCharacters.size() && i < 2; i++) {
-        if (game->objectDict.find(game->selectedCharacters[i]) != game->objectDict.end()) {
-            auto player = std::make_shared<BaseActiveObject>(
-                game,
-                std::unordered_map<std::string, void*>(), // Empty dict for now
-                std::vector<float>{i == 0 ? -300.0f : 300.0f, -1.0f, 0.0f},
-                i == 0 ? 1 : -1,
-                i < game->inputDeviceList.size() ? game->inputDeviceList[i] : nullptr,
-                i + 1
-            );
-            game->activePlayers.push_back(player);
-            game->objectList.push_back(player);
+        std::shared_ptr<InputDevice> inputDev = nullptr;
+        if (i < game->inputDeviceList.size()) {
+            inputDev = game->inputDeviceList[i];
         }
+        
+        auto player = std::make_shared<BaseActiveObject>(
+            game,
+            std::unordered_map<std::string, void*>(), // Empty dict for now
+            std::vector<float>{i == 0 ? -300.0f : 300.0f, -1.0f, 0.0f},
+            i == 0 ? 1 : -1,
+            inputDev,
+            i + 1
+        );
+        game->activePlayers.push_back(player);
+        game->objectList.push_back(player);
+        
+        std::cout << "Created player " << (i+1) << " at position " 
+                  << (i == 0 ? -300.0f : 300.0f) << std::endl;
     }
 }
 
