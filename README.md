@@ -67,8 +67,6 @@ Unzip the file and place the folder in the `Assets/images` folder before running
 ### Python Version (Pygame)
 
 ```bash
-git clone https://github.com/Ranguel/Reencor
-cd Reencor
 python main.py
 ```
 
@@ -79,8 +77,6 @@ The C++ version is located in the `game_sdl` folder. See [game_sdl/README.md](ga
 Quick start:
 ```bash
 cd game_sdl
-mkdir build && cd build
-cmake ..
-make
-./reencor
+./build.sh
+./build/reencor
 ```
