@@ -57,3 +57,4 @@ Unzip the file and place the folder in the `Assets/images` folder before running
 git clone https://github.com/Ranguel/Reencor
 cd Reencor
 python main.py
+```

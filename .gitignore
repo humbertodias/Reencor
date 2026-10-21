@@ -80,6 +80,9 @@ build/
 # Unshared files
 Assets/images/SF3/
 Assets/images/SVC/
+Assets/images/02_Ryu/
+Assets/images/11_Ken/
+Assets/images/22_Ingame Effects/
 
 Assets/sounds/SF3/
 Assets/sounds/SVC/
